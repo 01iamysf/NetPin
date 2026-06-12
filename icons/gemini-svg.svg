@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <mask id="pin-mask">
+      <rect width="64" height="64" fill="white" />
+      <circle cx="44" cy="28" r="4" fill="black" />
+    </mask>
+  </defs>
+  <path d="M20 44 V20 L36 36 V20" stroke="#0ea5e9" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M44 48 C44 48 36 36 36 28 C36 23.58 39.58 20 44 20 C48.42 20 52 23.58 52 28 C52 36 44 48 44 48 Z" fill="#0ea5e9" mask="url(#pin-mask)"/>
+</svg>

@@ -42,6 +42,8 @@ function MapController({ center }) {
 
 import { useSettings } from '../common/hooks/useSettings';
 
+import netpinLogo from '../../icons/gemini-svg.svg';
+
 export default function Dashboard() {
   const { loading, error, data, triggerAnalysis } = useServerData();
   const [viewMode, setViewMode] = useState('map'); // 'map' or 'globe'
@@ -225,13 +227,11 @@ export default function Dashboard() {
     <div className={`w-full min-h-screen ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col font-sans `}>
       {/* Header */}
       <header className={`border-b ${darkMode ? 'bg-[#0a0e1a]/80 border-slate-900' : 'bg-white/90 border-slate-200'} sticky top-0 z-50 backdrop-blur-md px-6 py-4 flex items-center justify-between`}>
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-blue-600/20 flex items-center justify-center border border-blue-500/30">
-            <Globe className="w-5 h-5 text-blue-400" />
+        <div className="flex items-center gap-2 px-2">
+          <div className="w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center border border-blue-500/30">
+            <img src={netpinLogo} className="w-5 h-5" alt="NetPin" />
           </div>
-          <span className="font-extrabold text-xl tracking-wider bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-            NetPin
-          </span>
+          <h2 className="font-bold text-2xl tracking-wider bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">NetPin</h2>
         </div>
 
         {/* Global Tab Banner for context site */}

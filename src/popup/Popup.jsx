@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useServerData } from '../common/hooks/useServerData';
+import netpinLogo from '../../icons/gemini-svg.svg';
 import { 
   Shield, 
   Leaf, 
@@ -119,11 +120,10 @@ export default function Popup() {
 
   return (
     <div className={`w-[380px] min-h-[580px] ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col p-4 font-sans select-none animate-fade-in`}>
-      {/* Header */}
       <div className={`flex items-center justify-between border-b ${darkMode ? 'border-slate-900' : 'border-slate-200'} pb-3 mb-3`}>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center border border-blue-500/30">
-            <Globe className="w-4 h-4 text-blue-400" />
+            <img src={netpinLogo} className="w-4 h-4" alt="NetPin" />
           </div>
           <span className="font-bold text-lg tracking-wide bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
             NetPin
