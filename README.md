@@ -4,9 +4,14 @@ NetPin is an open source Chrome extension that gives you transparent details abo
 
 ## Screenshots
 
-[Insert Screenshot 1 here]
+### Extension Popup
+![NetPin Extension Popup](assets/screenshots/popup.png)
 
-[Insert Screenshot 2 here]
+### Dashboard Overview
+![Dashboard Overview showing server location and carbon metrics](assets/screenshots/overview.png)
+
+### Connection History
+![Connection Domain History showing past scans](assets/screenshots/history.png)
 
 ## Installation
 
