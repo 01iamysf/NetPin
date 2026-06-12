@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+/* Custom dark mode filter for standard Leaflet maps */
+.dark-map .leaflet-tile-container {
+  filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%);
+}
+.dark-map {
+  background-color: #0b0f19 !important;
+}
+.leaflet-container {
+  font-family: inherit;
+}
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border: 1px solid #1e293b;
+}
+
+/* Slow spin for turbine SVG animations */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+.animate-spin-medium {
+  animation: spin-slow 4s linear infinite;
+}
+
+/* Pulsing glow for connection signals */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(37, 99, 235, 0.4);
+    opacity: 0.8;
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(37, 99, 235, 0.8);
+    opacity: 1;
+  }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Fade in for layout entry */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+/* Dotted line animation for SVG maps */
+@keyframes dash {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+.animate-dash {
+  stroke-dasharray: 6, 4;
+  animation: dash 2.5s linear infinite;
+}
+
+/* 
+ * GLOBAL SYNCHRONIZED THEME TRANSITION
+ * Optimized for 60fps by removing expensive properties like box-shadow
+ */
+*, ::before, ::after {
+  transition-property: color, background-color, border-color, fill, stroke;
+  transition-duration: 200ms;
+  transition-timing-function: ease-in-out;
+}
