@@ -13,6 +13,9 @@ NetPin is an open source Chrome extension that gives you transparent details abo
 #### Connection History
 ![Connection Domain History showing past scans](assets/screenshots/history.png)
 
+#### Dashboard About
+![Dashboard About page showing project details, version, and feature highlights](assets/screenshots/about.png)
+
 ## Installation & Local Setup
 
 To clone this repository and run the extension locally on your own machine, follow these steps:
