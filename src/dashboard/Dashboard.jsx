@@ -45,7 +45,7 @@ import { useSettings } from '../common/hooks/useSettings';
 export default function Dashboard() {
   const { loading, error, data, triggerAnalysis } = useServerData();
   const [viewMode, setViewMode] = useState('map'); // 'map' or 'globe'
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const initialTab = urlParams ? (urlParams.get('tab') || 'overview') : 'overview';
   const [activeTab, setActiveTab] = useState(initialTab); // 'overview', 'history', 'lists', 'settings', 'about'

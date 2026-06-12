@@ -19,7 +19,7 @@ import {
 
 export default function Popup() {
   const { loading, error, data, triggerAnalysis } = useServerData();
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
 
   const handleOpenDashboard = () => {
     const domainArg = data ? `?domain=${data.domain}` : '';
