@@ -26,8 +26,18 @@ import {
   CheckCircle,
   HelpCircle,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  Trash2,
+  X,
+  Zap,
+  Route,
+  Code,
+  User,
+  Github,
+  Linkedin
 } from 'lucide-react';
+
+import { getCookieInfo } from '../common/utils/cookieExplainers';
 
 // Custom Map center update helper
 function MapController({ center }) {
@@ -45,9 +55,10 @@ import { useSettings } from '../common/hooks/useSettings';
 import netpinLogo from '../../icons/gemini-svg.svg';
 
 export default function Dashboard() {
-  const { loading, error, data, triggerAnalysis } = useServerData();
+  const { loading, error, data, triggerAnalysis, removeCookies } = useServerData();
   const [viewMode, setViewMode] = useState('map'); // 'map' or 'globe'
   const [darkMode, setDarkMode] = useState(false);
+  const [infoCookie, setInfoCookie] = useState(null);
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const initialTab = urlParams ? (urlParams.get('tab') || 'overview') : 'overview';
   const [activeTab, setActiveTab] = useState(initialTab); // 'overview', 'history', 'lists', 'settings', 'about'
@@ -834,9 +845,23 @@ export default function Dashboard() {
               <div className="mt-8">
                 <h3 className={`font-bold text-sm mb-3 flex justify-between items-center ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                   <span>Browser Cookies Stored for Domain</span>
-                  <span className="text-[10px] px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded-md">
-                    {data.cookies ? data.cookies.length : 0} Cookies
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded-md">
+                      {data.cookies ? data.cookies.length : 0} Cookies
+                    </span>
+                    {data.cookies && data.cookies.length > 0 && (
+                      <button 
+                        onClick={() => {
+                          if(window.confirm('Are you sure you want to clear all cookies for this domain? You may be logged out.')){
+                            removeCookies(data.cookies);
+                          }
+                        }}
+                        className="text-[10px] font-bold px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded shadow-sm flex items-center gap-1 transition-colors"
+                      >
+                        <Trash2 className="w-3 h-3" /> Clear All
+                      </button>
+                    )}
+                  </div>
                 </h3>
                 
                 {data.cookies && data.cookies.length > 0 ? (
@@ -847,6 +872,7 @@ export default function Dashboard() {
                           <th className="p-3">Name</th>
                           <th className="p-3">Domain</th>
                           <th className="p-3">Value</th>
+                          <th className="p-3 text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className={`divide-y ${darkMode ? 'divide-slate-800/50' : 'divide-slate-200/50'}`}>
@@ -854,7 +880,15 @@ export default function Dashboard() {
                           <tr key={idx} className={darkMode ? 'hover:bg-slate-800/20' : 'hover:bg-slate-50'}>
                             <td className="p-3 font-semibold break-all">{cookie.name}</td>
                             <td className="p-3 text-[10px]">{cookie.domain}</td>
-                            <td className="p-3 text-[10px] font-mono truncate max-w-[200px]" title={cookie.value}>{cookie.value}</td>
+                            <td className="p-3 text-[10px] font-mono truncate max-w-[150px] lg:max-w-[200px]" title={cookie.value}>{cookie.value}</td>
+                            <td className="p-3 text-right space-x-2 whitespace-nowrap">
+                              <button onClick={() => setInfoCookie(cookie)} className={`p-1.5 rounded-lg ${darkMode ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`} title="Cookie Info">
+                                <Info className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => removeCookies([cookie])} className={`p-1.5 rounded-lg ${darkMode ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-red-100 text-red-600 hover:bg-red-200'}`} title="Delete Cookie">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -933,40 +967,141 @@ export default function Dashboard() {
 
         {/* TAB 5: ABOUT */}
         {activeTab === 'about' && (
-          <div className="lg:col-span-12">
-            <div className={`border rounded-2xl p-6 shadow-xl ${darkMode ? 'bg-[#0f172a] text-slate-200' : 'bg-white text-slate-800'} flex flex-col items-center text-center max-w-xl mx-auto`}>
-              <div className="w-16 h-16 rounded-2xl bg-blue-600/20 flex items-center justify-center border border-blue-500/30 mb-4">
-                <Globe className="w-8 h-8 text-blue-400" />
+          <div className="lg:col-span-12 flex flex-col items-center max-w-5xl mx-auto w-full mb-12 animate-fade-in">
+            
+            {/* Header Section */}
+            <div className="flex flex-col items-center text-center mt-12 mb-16">
+              <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(59,130,246,0.15)] ${darkMode ? 'bg-[#151c2e] border border-[#2e3b5e]' : 'bg-blue-50 border border-blue-200'}`}>
+                <Globe className={`w-10 h-10 ${darkMode ? 'text-blue-500' : 'text-blue-600'}`} strokeWidth={1.5} />
               </div>
-              <h2 className="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent mb-1">
+              <h2 className="text-4xl font-extrabold tracking-wide bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent mb-4">
                 NetPin
               </h2>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${darkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600'}`}>VERSION 1.0.0</span>
-
-              <p className={`text-xs leading-relaxed mt-6 max-w-md ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                NetPin is a high-performance Chrome Extension crafted to provide transparent details on global website infrastructures. It resolves server location coordinates, network latency pathways, carbon footprint scores, and localized user-privacy protection laws in real time.
+              <div className={`text-xs font-semibold px-4 py-1.5 rounded-full mb-8 ${darkMode ? 'bg-[#2a3449] text-slate-300' : 'bg-slate-200 text-slate-700'}`}>
+                Version 1.0.0
+              </div>
+              <p className={`text-[15px] leading-relaxed max-w-2xl font-medium ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                NetPin is a privacy and transparency extension that helps you<br />
+                see the hidden details behind every website you visit.<br />
+                Server locations, network routes, privacy laws and carbon impact —<br />
+                all in one place.
               </p>
+            </div>
 
-              <div className={`border-t w-full my-6 pt-6 grid grid-cols-2 gap-4 text-xs ${darkMode ? 'border-slate-800/40' : 'border-slate-200'}`}>
-                <div>
-                  <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Powered By</span>
-                  <p className={`font-semibold mt-1 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>IP-API & GreenWebFoundation</p>
+            {/* Feature Cards Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full mb-8">
+              {/* Card 1 */}
+              <div className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+                <div className="mb-4">
+                  <MapPin className="w-8 h-8 text-blue-500" strokeWidth={1.5} />
                 </div>
-                <div>
-                  <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Developer License</span>
-                  <p className={`font-semibold mt-1 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>MIT Open Source</p>
+                <h3 className={`font-bold text-sm mb-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Server Location</h3>
+                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>See where the<br/>website is hosted.</p>
+              </div>
+              {/* Card 2 */}
+              <div className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+                <div className="mb-4">
+                  <Zap className="w-8 h-8 text-blue-400" strokeWidth={1.5} />
+                </div>
+                <h3 className={`font-bold text-sm mb-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Network Latency</h3>
+                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Check real-time<br/>latency and<br/>performance.</p>
+              </div>
+              {/* Card 3 */}
+              <div className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+                <div className="mb-4">
+                  <ShieldCheck className="w-8 h-8 text-indigo-400" strokeWidth={1.5} />
+                </div>
+                <h3 className={`font-bold text-sm mb-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Privacy Laws</h3>
+                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Understand which<br/>privacy laws apply<br/>to the server.</p>
+              </div>
+              {/* Card 4 */}
+              <div className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+                <div className="mb-4">
+                  <Leaf className="w-8 h-8 text-blue-500" strokeWidth={1.5} />
+                </div>
+                <h3 className={`font-bold text-sm mb-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Carbon Impact</h3>
+                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>See the estimated<br/>carbon footprint of<br/>the connection.</p>
+              </div>
+              {/* Card 5 */}
+              <div className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+                <div className="mb-4">
+                  <Route className="w-8 h-8 text-indigo-500" strokeWidth={1.5} />
+                </div>
+                <h3 className={`font-bold text-sm mb-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Data Route</h3>
+                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Discover how far<br/>your data<br/>travels.</p>
+              </div>
+            </div>
+
+            {/* Privacy First Card */}
+            <div className={`w-full p-8 rounded-2xl flex flex-col md:flex-row items-center md:items-start gap-6 mb-6 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center shrink-0 ${darkMode ? 'bg-[#1a2035]' : 'bg-blue-50'}`}>
+                <Lock className="w-8 h-8 text-blue-500" strokeWidth={1.5} />
+              </div>
+              <div className="text-center md:text-left mt-2 md:mt-0">
+                <h3 className="font-bold text-lg mb-1.5 text-blue-400">Privacy First</h3>
+                <p className={`text-sm leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                  NetPin does not collect, store or share any personal data.<br className="hidden md:block" />
+                  All analysis happens locally on your device.
+                </p>
+              </div>
+            </div>
+
+            {/* Bottom Grid: Open Source & Developer */}
+            <div className={`w-full rounded-2xl grid grid-cols-1 md:grid-cols-2 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+              
+              {/* Left Column: Open Source */}
+              <div className={`p-8 md:border-r ${darkMode ? 'border-slate-800/60' : 'border-slate-200'}`}>
+                <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-5">
+                  <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${darkMode ? 'bg-[#1a2035]' : 'bg-blue-50'}`}>
+                    <Code className="w-7 h-7 text-indigo-500" strokeWidth={1.5} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg mb-1.5 text-blue-400">Open Source</h3>
+                    <p className={`text-sm mb-6 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                      NetPin is 100% open source and free to use.<br className="hidden md:block" />
+                      Contributions are welcome!
+                    </p>
+                    <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
+                      <a href="https://github.com/01iamysf/NetPin" target="_blank" rel="noreferrer" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all w-full sm:w-auto">
+                        <Github className="w-4 h-4" /> View on GitHub <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                      </a>
+                      <a href="https://github.com/01iamysf/NetPin/issues" target="_blank" rel="noreferrer" className={`px-5 py-2.5 rounded-xl border font-bold text-sm flex items-center justify-center gap-2 transition-all w-full sm:w-auto ${darkMode ? 'border-slate-700 hover:bg-slate-800 text-slate-300' : 'border-slate-200 hover:bg-slate-50 text-slate-700'}`}>
+                        <ExternalLink className="w-4 h-4 opacity-70" /> Report an Issue
+                      </a>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <a 
-                href="https://github.com/01iamysf/NetPin" 
-                target="_blank" 
-                rel="noreferrer" 
-                className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-md mt-2"
-              >
-                <span>View Project Github</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+              {/* Right Column: Developer */}
+              <div className="p-8">
+                <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-5">
+                  <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${darkMode ? 'bg-[#1a2035]' : 'bg-blue-50'}`}>
+                    <User className="w-7 h-7 text-blue-500" strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg mb-1.5 text-blue-400">Developer</h3>
+                    <h4 className={`font-bold text-base mb-1 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Md Yusuf</h4>
+                    <p className={`text-xs mb-3 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Software Engineer</p>
+                    <p className={`text-sm mb-5 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                      Passionate about clean code, system<br className="hidden md:block" />
+                      design, and AI/ML integrations.
+                    </p>
+                    <div className="flex items-center justify-center md:justify-start gap-5">
+                      <a href="https://github.com/01iamysf" target="_blank" rel="noreferrer" className={`transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-blue-600'}`}>
+                        <Github className="w-5 h-5" />
+                      </a>
+                      <a href="https://iamyusuf.site" target="_blank" rel="noreferrer" className={`transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-blue-600'}`}>
+                        <Globe className="w-5 h-5" />
+                      </a>
+                      <a href="https://linkedin.com/in/01iamysf" target="_blank" rel="noreferrer" className={`transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-blue-600'}`}>
+                        <Linkedin className="w-5 h-5" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
             </div>
           </div>
         )}
@@ -974,6 +1109,86 @@ export default function Dashboard() {
         {/* Universal Bottom Spacer to prevent overlap with the fixed footer navigation bar */}
         <div className="col-span-1 lg:col-span-12 h-28 pointer-events-none"></div>
       </main>
+
+      {/* Cookie Info Modal Popover */}
+      {infoCookie && (() => {
+        const info = getCookieInfo(infoCookie.name);
+        // Map dynamic colors statically for Tailwind
+        const colorMap = {
+          'blue': darkMode ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-blue-100 text-blue-600 border-blue-200',
+          'emerald': darkMode ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-100 text-emerald-600 border-emerald-200',
+          'indigo': darkMode ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'bg-indigo-100 text-indigo-600 border-indigo-200',
+          'red': darkMode ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-red-100 text-red-600 border-red-200',
+          'slate': darkMode ? 'bg-slate-500/10 text-slate-400 border-slate-500/20' : 'bg-slate-100 text-slate-600 border-slate-200',
+        };
+        const badgeClass = colorMap[info.color] || colorMap.slate;
+
+        return (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={() => setInfoCookie(null)}>
+            <div className={`w-full max-w-sm rounded-2xl shadow-2xl p-6 relative ${darkMode ? 'bg-[#0f172a] border border-slate-800 text-slate-200' : 'bg-white text-slate-800'}`} onClick={e => e.stopPropagation()}>
+              <button 
+                onClick={() => setInfoCookie(null)}
+                className={`absolute top-4 right-4 p-1.5 rounded-lg ${darkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${badgeClass} border-none`}>
+                  <Info className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg break-all leading-tight pr-6">{infoCookie.name}</h3>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border mt-1 inline-block ${badgeClass}`}>
+                    {info.category}
+                  </span>
+                </div>
+              </div>
+
+              <div className={`p-4 rounded-xl mb-4 text-sm ${darkMode ? 'bg-[#0a0e1a] border border-slate-800 text-slate-300' : 'bg-slate-50 border border-slate-200 text-slate-700'}`}>
+                {info.description}
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Domain</span>
+                  <span className="font-semibold">{infoCookie.domain}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Importance</span>
+                  <span className={`font-semibold ${info.importance === 'High' ? 'text-red-400' : info.importance === 'Medium' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                    {info.importance}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Expiration</span>
+                  <span className="font-semibold truncate max-w-[150px]">
+                    {infoCookie.session ? 'End of Session' : new Date(infoCookie.expirationDate * 1000).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="mt-6 flex gap-3">
+                <button 
+                  onClick={() => setInfoCookie(null)}
+                  className={`flex-1 py-2.5 rounded-lg font-bold text-sm ${darkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
+                >
+                  Close
+                </button>
+                <button 
+                  onClick={() => {
+                    removeCookies([infoCookie]);
+                    setInfoCookie(null);
+                  }}
+                  className="flex-1 py-2.5 rounded-lg font-bold text-sm bg-red-500 hover:bg-red-600 text-white flex items-center justify-center gap-1.5"
+                >
+                  <Trash2 className="w-4 h-4" /> Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Footer Navigation Bar */}
       <footer className={`fixed bottom-0 left-0 right-0 border-t z-50 ${darkMode ? 'bg-[#0a0e1a] border-slate-900' : 'bg-white border-slate-200'}`}>

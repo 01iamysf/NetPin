@@ -246,5 +246,30 @@ export function useServerData() {
     }
   }, [settingsLoaded, settings.autoAnalyze, fetchData, data]);
 
-  return { loading, error, data, triggerAnalysis: fetchData };
+  const removeCookies = useCallback(async (cookiesToDelete) => {
+    if (typeof chrome === 'undefined' || !chrome.cookies) return;
+    
+    // delete in browser
+    for (const cookie of cookiesToDelete) {
+      const protocol = cookie.secure ? 'https:' : 'http:';
+      // Some domains have leading dot, removing it for url
+      const cleanDomain = cookie.domain.startsWith('.') ? cookie.domain.substring(1) : cookie.domain;
+      const cookieUrl = `${protocol}//${cleanDomain}${cookie.path}`;
+      try {
+        await chrome.cookies.remove({ url: cookieUrl, name: cookie.name });
+      } catch (e) {
+        console.error("Failed to remove cookie", e);
+      }
+    }
+    
+    // Update local state
+    setData(prev => {
+      if (!prev) return prev;
+      const namesToDelete = new Set(cookiesToDelete.map(c => c.name));
+      const remainingCookies = prev.cookies.filter(c => !namesToDelete.has(c.name));
+      return { ...prev, cookies: remainingCookies };
+    });
+  }, []);
+
+  return { loading, error, data, triggerAnalysis: fetchData, removeCookies };
 }
