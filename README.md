@@ -13,25 +13,32 @@ NetPin is an open source Chrome extension that gives you transparent details abo
 #### Connection History
 ![Connection Domain History showing past scans](assets/screenshots/history.png)
 
-## Installation
+## Installation & Local Setup
 
-1. Clone or download this repository.
-2. Open Chrome and go to chrome://extensions/
-3. Enable "Developer mode" in the top right.
-4. Click "Load unpacked" and select the `dist` folder generated after running the build step.
+To clone this repository and run the extension locally on your own machine, follow these steps:
 
-### Development Setup
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/developer/netpin.git
+   cd netpin
+   ```
 
-To run this project locally:
-
-1. Install dependencies:
+2. **Install dependencies:**
+   ```bash
    npm install
+   ```
 
-2. Start the development server:
-   npm run dev
-
-3. Build for production:
+3. **Build the extension for production:**
+   ```bash
    npm run build
+   ```
+   *(Alternatively, run `npm run dev` to start a development server with hot-reloading.)*
+
+4. **Load into Chrome:**
+   - Open your Chrome browser and navigate to `chrome://extensions/`
+   - Enable the **Developer mode** toggle in the top right corner.
+   - Click the **Load unpacked** button.
+   - Select the `dist` folder that was just generated in your `netpin` directory.
 
 ## Contributing
 
