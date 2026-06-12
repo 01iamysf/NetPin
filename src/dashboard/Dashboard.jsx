@@ -959,7 +959,7 @@ export default function Dashboard() {
               </div>
 
               <a 
-                href="https://github.com" 
+                href="https://github.com/01iamysf/NetPin" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-md mt-2"
