@@ -93,13 +93,14 @@ export function useServerData() {
         // 1. Get User Position (IP-based lookup + browser Geolocation)
         let userLocation = { ...SILIGURI_COORDS };
         
+        // Fetch user's IP-based location with failover backup providers
+        let ipLocation = null;
         try {
-          // Fetch user's IP-based location for quick, prompt-less coordinates
           const userIpRes = await fetch('http://ip-api.com/json');
           if (userIpRes.ok) {
             const userIpData = await userIpRes.json();
             if (userIpData && userIpData.status === 'success') {
-              userLocation = {
+              ipLocation = {
                 lat: userIpData.lat,
                 lon: userIpData.lon,
                 city: userIpData.city || SILIGURI_COORDS.city,
@@ -108,7 +109,31 @@ export function useServerData() {
             }
           }
         } catch (e) {
-          console.warn("User IP geo-lookup failed, using default Siliguri coords:", e);
+          console.warn("Primary IP lookup (ip-api.com) failed, trying backup:", e);
+        }
+
+        if (!ipLocation) {
+          try {
+            // Backup provider: freeipapi.com (HTTPS supported, no keys required)
+            const backupRes = await fetch('https://freeipapi.com/api/json');
+            if (backupRes.ok) {
+              const backupData = await backupRes.json();
+              if (backupData) {
+                ipLocation = {
+                  lat: backupData.latitude,
+                  lon: backupData.longitude,
+                  city: backupData.cityName || SILIGURI_COORDS.city,
+                  country: backupData.countryName || SILIGURI_COORDS.country
+                };
+              }
+            }
+          } catch (backupErr) {
+            console.warn("Backup IP lookup (freeipapi.com) failed:", backupErr);
+          }
+        }
+
+        if (ipLocation) {
+          userLocation = ipLocation;
         }
 
         // Try refining user location using GPS Geolocation (blocking with 3s timeout)
@@ -187,7 +212,7 @@ export function useServerData() {
 
         // 5. Generate and Merge Mock Fields
         const hostingProvider = formatHostingProvider(serverData.as, serverData.org);
-        const mocks = generateMockData(domain, serverData.city, serverData.country, latency);
+        const mocks = generateMockData(domain, serverData.city, serverData.country, latency, userLocation);
 
         // Override journey nodes with actual coordinates and resolved details
         const enrichedJourney = mocks.journey.map(node => {

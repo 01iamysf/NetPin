@@ -6,7 +6,7 @@
  * @param {number} latency Measured dynamic connection latency in milliseconds
  * @returns {object} Mocked fields matching the UI design requirements
  */
-export function generateMockData(domain, serverCity, serverCountry, latency) {
+export function generateMockData(domain, serverCity, serverCountry, latency, userLocation) {
   // 1. Hops count between 8 and 16
   const hops = Math.floor(Math.random() * 9) + 8;
 
@@ -73,14 +73,41 @@ export function generateMockData(domain, serverCity, serverCountry, latency) {
   const city = serverCity || "Mumbai";
   const country = serverCountry || "India";
 
+  // Dynamic regional gateway hub routing based on user's GPS/IP location coordinates
+  let networkHub = "Kolkata, India";
+  if (userLocation && userLocation.lat && userLocation.lon) {
+    const lat = userLocation.lat;
+    const lon = userLocation.lon;
+    if (userLocation.country && userLocation.country.toLowerCase().includes("india")) {
+      // Segment routing path based on geographical sectors of India
+      if (lat > 25) {
+        if (lon < 80) {
+          networkHub = "New Delhi, India";
+        } else {
+          networkHub = "Kolkata, India";
+        }
+      } else if (lat <= 20) {
+        if (lon < 79) {
+          networkHub = "Bangalore, India";
+        } else {
+          networkHub = "Chennai, India";
+        }
+      } else {
+        networkHub = "Mumbai, India";
+      }
+    } else {
+      networkHub = `State Exchange, ${userLocation.country}`;
+    }
+  }
+
   if (lowerCountry.includes("india")) {
     journey.push(
-      { name: "Network", location: "Kolkata, India", type: "network" },
+      { name: "Network", location: networkHub, type: "network" },
       { name: "Server", location: `${city}, India`, type: "server" }
     );
   } else {
     journey.push(
-      { name: "Network", location: "Kolkata, India", type: "network" },
+      { name: "Network", location: networkHub, type: "network" },
       { name: "Transit", location: "London, United Kingdom", type: "transit" },
       { name: "Server", location: `${city}, ${country}`, type: "server" }
     );

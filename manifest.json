@@ -9,7 +9,8 @@
     "storage",
     "cookies",
     "declarativeNetRequest",
-    "notifications"
+    "notifications",
+    "geolocation"
   ],
   "host_permissions": [
     "http://ip-api.com/*",
