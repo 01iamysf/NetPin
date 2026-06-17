@@ -34,7 +34,8 @@ import {
   Code,
   User,
   Github,
-  Linkedin
+  Linkedin,
+  RefreshCw
 } from 'lucide-react';
 
 import { getCookieInfo } from '../common/utils/cookieExplainers';
@@ -252,7 +253,19 @@ export default function Dashboard() {
           <span className={`w-2 h-2 rounded-full ${data.green ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={triggerAnalysis}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold shadow-sm cursor-pointer transition-all active:scale-[0.98] ${
+              darkMode 
+                ? 'border-slate-800 hover:bg-slate-900/60 text-slate-350 hover:text-white' 
+                : 'border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-800'
+            }`}
+            title="Re-run connection analysis"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Re-analyze</span>
+          </button>
           <button 
             onClick={() => setDarkMode(!darkMode)}
             className={`p-2 rounded-xl border ${darkMode ? 'border-slate-800 text-yellow-400 hover:bg-slate-900' : 'border-slate-200 text-indigo-600 hover:bg-slate-100'} `}
