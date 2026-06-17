@@ -111,18 +111,42 @@ export function useServerData() {
           console.warn("User IP geo-lookup failed, using default Siliguri coords:", e);
         }
 
-        // Try refining user location using GPS Geolocation (non-blocking)
+        // Try refining user location using GPS Geolocation (blocking with 3s timeout)
         if (settings.useGps !== false && navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              if (isMounted) {
-                userLocation.lat = pos.coords.latitude;
-                userLocation.lon = pos.coords.longitude;
-                // Keep the city/country from IP geo lookup or defaults
+          try {
+            const gpsCoords = await new Promise((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(
+                (pos) => resolve(pos.coords),
+                (err) => reject(err),
+                { timeout: 3000, enableHighAccuracy: true }
+              );
+            });
+            if (gpsCoords) {
+              userLocation.lat = gpsCoords.latitude;
+              userLocation.lon = gpsCoords.longitude;
+              
+              // Reverse-geocode coordinates to get the user's actual city and country
+              try {
+                const geoRes = await fetch(
+                  `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${gpsCoords.latitude}&lon=${gpsCoords.longitude}`,
+                  { headers: { 'Accept-Language': 'en' } }
+                );
+                if (geoRes.ok) {
+                  const geoData = await geoRes.json();
+                  if (geoData && geoData.address) {
+                    const city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.suburb || geoData.address.state_district || SILIGURI_COORDS.city;
+                    const country = geoData.address.country || SILIGURI_COORDS.country;
+                    userLocation.city = city;
+                    userLocation.country = country;
+                  }
+                }
+              } catch (geoErr) {
+                console.warn("Reverse geocoding failed, keeping IP-based location names:", geoErr);
               }
-            },
-            (err) => console.log("Geolocation permission denied/timed out, using IP/default location.")
-          );
+            }
+          } catch (gpsErr) {
+            console.log("GPS Geolocation failed or timed out, using IP/default location:", gpsErr);
+          }
         }
 
         // 2. Fetch Server Geolocation from IP-API & Measure Latency
@@ -168,6 +192,9 @@ export function useServerData() {
         // Override journey nodes with actual coordinates and resolved details
         const enrichedJourney = mocks.journey.map(node => {
           if (node.type === 'user') {
+            return { ...node, location: `${userLocation.city}, ${userLocation.country}` };
+          }
+          if (node.type === 'isp') {
             return { ...node, location: `${userLocation.city}, ${userLocation.country}` };
           }
           if (node.type === 'server') {
