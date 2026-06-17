@@ -920,7 +920,7 @@ export default function Dashboard() {
         {/* TAB 4: SETTINGS */}
         {activeTab === 'settings' && (
           <div className="lg:col-span-12">
-            <div className={`border rounded-2xl p-6 shadow-xl ${darkMode ? 'bg-[#0f172a] text-slate-200' : 'bg-white text-slate-800'}`}>
+            <div className={`border rounded-2xl p-6 shadow-md ${darkMode ? 'bg-[#0f172a] border-slate-900 text-slate-200' : 'bg-white border-slate-200 text-slate-800'}`}>
               <h2 className="text-xl font-bold flex items-center gap-2 mb-2">
                 <Settings className="w-6 h-6 text-blue-500" />
                 Extension Configuration
