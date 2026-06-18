@@ -35,7 +35,8 @@ import {
   User,
   Github,
   Linkedin,
-  RefreshCw
+  RefreshCw,
+  Download
 } from 'lucide-react';
 
 import { getCookieInfo } from '../common/utils/cookieExplainers';
@@ -229,6 +230,25 @@ export default function Dashboard() {
     );
   }
 
+  // Export Report Functionality
+  const exportReport = () => {
+    if (!data) return;
+    const reportData = {
+      timestamp: new Date().toISOString(),
+      netpinVersion: "1.0",
+      analysis: data
+    };
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `netpin-report-${data.domain}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   // Lat/Lon Coords
   const youPosition = [data.userLocation.lat, data.userLocation.lon];
   const serverPosition = [data.serverLocation.lat, data.serverLocation.lon];
@@ -269,6 +289,18 @@ export default function Dashboard() {
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Re-analyze</span>
+          </button>
+          <button
+            onClick={exportReport}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold shadow-sm cursor-pointer transition-all active:scale-[0.98] ${
+              darkMode 
+                ? 'border-indigo-800 bg-indigo-900/40 hover:bg-indigo-900/60 text-indigo-300 hover:text-white' 
+                : 'border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800'
+            }`}
+            title="Download JSON Report"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export</span>
           </button>
           <button 
             onClick={() => setDarkMode(!darkMode)}
@@ -536,6 +568,21 @@ export default function Dashboard() {
                   })}
                 </div>
               </div>
+
+              {/* Informational Widget */}
+              <div className={`border rounded-2xl p-5 shadow-xl border-dashed ${darkMode ? 'bg-[#0d1222] border-blue-500/20 text-slate-400' : 'bg-blue-50/50 border-blue-200 text-slate-600'}`}>
+                <div className="flex gap-3">
+                  <Info className="w-6 h-6 text-blue-500 shrink-0" />
+                  <div>
+                    <h4 className={`font-bold text-xs mb-1 ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>
+                      Why Server Location Matters?
+                    </h4>
+                    <p className="text-[11px] leading-relaxed">
+                      Websites you visit store your data on global hosting servers. Knowing where these nodes reside helps you comprehend jurisdiction data protection laws, connection route path, latency speed, and the overall carbon impact of your network queries.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Right Column (Stacked Cards) */}
@@ -693,17 +740,36 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              {/* Informational Widget */}
-              <div className={`border rounded-2xl p-5 shadow-xl border-dashed ${darkMode ? 'bg-[#0d1222] border-blue-500/20 text-slate-400' : 'bg-blue-50/50 border-blue-200 text-slate-600'}`}>
-                <div className="flex gap-3">
-                  <Info className="w-6 h-6 text-blue-500 shrink-0" />
-                  <div>
-                    <h4 className={`font-bold text-xs mb-1 ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>
-                      Why Server Location Matters?
-                    </h4>
-                    <p className="text-[11px] leading-relaxed">
-                      Websites you visit store your data on global hosting servers. Knowing where these nodes reside helps you comprehend jurisdiction data protection laws, connection route path, latency speed, and the overall carbon impact of your network queries.
-                    </p>
+              {/* Domain Intelligence Card */}
+              <div className={`border rounded-2xl p-5 flex flex-col gap-4 shadow-xl mb-6 ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <Globe className={`w-5 h-5 ${darkMode ? 'text-indigo-400' : 'text-indigo-500'}`} />
+                  <h3 className="font-bold text-sm">Domain Intelligence & WHOIS</h3>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`p-3 rounded-xl border ${darkMode ? 'bg-slate-800/30 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Registrar</span>
+                    <span className="text-xs font-semibold">{data.whois?.registrar || 'Unknown'}</span>
+                  </div>
+                  <div className={`p-3 rounded-xl border ${darkMode ? 'bg-slate-800/30 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Registration Date</span>
+                    <span className="text-xs font-semibold">{data.whois?.registered || 'Unknown'}</span>
+                  </div>
+                </div>
+
+                <div className={`p-3 rounded-xl border ${darkMode ? 'bg-slate-800/30 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">DNS Records (A)</span>
+                  <div className="flex flex-wrap gap-2">
+                    {data.dns && data.dns.length > 0 ? (
+                      data.dns.map((ip, i) => (
+                        <span key={i} className={`text-xs font-mono px-2 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`}>
+                          {ip}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-slate-500">No A records found</span>
+                    )}
                   </div>
                 </div>
               </div>

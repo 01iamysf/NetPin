@@ -249,6 +249,43 @@ export function useServerData() {
           }
         }
 
+        // Fetch DNS and WHOIS data
+        let dnsRecords = [];
+        try {
+          const dnsRes = await fetch(`https://dns.google/resolve?name=${domain}&type=A`);
+          if (dnsRes.ok) {
+            const dnsData = await dnsRes.json();
+            if (dnsData.Answer) {
+              dnsRecords = dnsData.Answer.map(a => a.data);
+            }
+          }
+        } catch (e) {
+          console.warn("DNS API failed:", e);
+        }
+
+        let whois = { registrar: 'Unknown', registered: 'Unknown', expires: 'Unknown' };
+        try {
+          const whoisRes = await fetch(`https://rdap.org/domain/${domain}`);
+          if (whoisRes.ok) {
+            const whoisData = await whoisRes.json();
+            if (whoisData.events) {
+              const regEvent = whoisData.events.find(e => e.eventAction === 'registration');
+              const expEvent = whoisData.events.find(e => e.eventAction === 'expiration');
+              if (regEvent) whois.registered = new Date(regEvent.eventDate).toISOString().split('T')[0];
+              if (expEvent) whois.expires = new Date(expEvent.eventDate).toISOString().split('T')[0];
+            }
+            if (whoisData.entities && whoisData.entities.length > 0) {
+              const registrarEntity = whoisData.entities.find(e => e.roles && e.roles.includes('registrar'));
+              if (registrarEntity && registrarEntity.vcardArray) {
+                const fnItem = registrarEntity.vcardArray[1].find(item => item[0] === 'fn');
+                if (fnItem) whois.registrar = fnItem[3];
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("RDAP API failed:", e);
+        }
+
         if (isMounted) {
           setData({
             domain,
@@ -275,7 +312,9 @@ export function useServerData() {
             },
             journey: enrichedJourney,
             trackers: mocks.trackers,
-            cookies: actualCookies
+            cookies: actualCookies,
+            dns: dnsRecords,
+            whois
           });
           setLoading(false);
         }
