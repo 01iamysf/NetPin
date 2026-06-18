@@ -195,6 +195,20 @@ export function useServerData() {
             console.error("Could not fetch cookies", e);
           }
         }
+        if (settings.strictTrackerBlock && mocks.trackers.length > 0) {
+          throw new Error('TRACKER_BLOCKED: High-risk trackers detected on this site. Strict Mode blocked the connection.');
+        }
+
+        if (settings.trackerAlerts && mocks.trackers.length > 10) {
+          if (typeof chrome !== "undefined" && chrome.notifications) {
+            chrome.notifications.create({
+              type: "basic",
+              iconUrl: "icons/icon-48.png",
+              title: "NetPin High-Risk Alert",
+              message: `${mocks.trackers.length} active trackers detected on ${domain}.`
+            });
+          }
+        }
 
         if (!greenStatus && settings.greenAlerts) {
           if (typeof chrome !== "undefined" && chrome.notifications) {

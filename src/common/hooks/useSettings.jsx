@@ -3,7 +3,11 @@ import { useState, useEffect } from 'react';
 const DEFAULT_SETTINGS = {
   autoAnalyze: true,
   blockTrackers: true,
-  greenAlerts: false
+  strictTrackerBlock: false,
+  trackerAlerts: false,
+  greenAlerts: false,
+  showIpv6: true,
+  exportFormat: 'json'
 };
 
 export function useSettings() {
@@ -43,5 +47,16 @@ export function useSettings() {
     }
   };
 
-  return { settings, toggleSetting, loaded };
+  const updateSetting = (key, value) => {
+    const newSettings = { ...settings, [key]: value };
+    setSettingsState(newSettings);
+
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ netpin_settings: newSettings });
+    } else {
+      localStorage.setItem('netpin_settings', JSON.stringify(newSettings));
+    }
+  };
+
+  return { settings, toggleSetting, updateSetting, loaded };
 }

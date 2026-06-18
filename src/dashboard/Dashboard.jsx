@@ -66,7 +66,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState(initialTab); // 'overview', 'history', 'lists', 'settings', 'about'
 
   // Settings State from persistent hook
-  const { settings, toggleSetting } = useSettings();
+  const { settings, toggleSetting, updateSetting } = useSettings();
 
   // Actual scan history state
   const [scanHistory, setScanHistory] = useState([]);
@@ -196,19 +196,22 @@ export default function Dashboard() {
 
   if (error) {
     const isLocationError = error.includes('LOCATION_DENIED');
-    const displayError = isLocationError ? error.replace('LOCATION_DENIED: ', '') : error;
+    const isTrackerError = error.includes('TRACKER_BLOCKED');
+    const displayError = isLocationError ? error.replace('LOCATION_DENIED: ', '') : (isTrackerError ? error.replace('TRACKER_BLOCKED: ', '') : error);
     
     return (
       <div className={`w-full min-h-screen ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col items-center justify-center p-8 text-center `}>
-        <div className={`w-20 h-20 rounded-[2rem] ${isLocationError ? 'bg-orange-500/10 border-orange-500/20 shadow-[0_0_40px_rgba(249,115,22,0.1)]' : 'bg-red-500/10 border-red-500/20 shadow-[0_0_40px_rgba(239,68,68,0.1)]'} flex items-center justify-center border mb-6`}>
+        <div className={`w-20 h-20 rounded-[2rem] ${isLocationError ? 'bg-orange-500/10 border-orange-500/20 shadow-[0_0_40px_rgba(249,115,22,0.1)]' : (isTrackerError ? 'bg-rose-500/10 border-rose-500/20 shadow-[0_0_40px_rgba(243,64,64,0.1)]' : 'bg-red-500/10 border-red-500/20 shadow-[0_0_40px_rgba(239,68,68,0.1)]')} flex items-center justify-center border mb-6`}>
           {isLocationError ? (
             <MapPin className="w-10 h-10 text-orange-400" />
+          ) : isTrackerError ? (
+            <Shield className="w-10 h-10 text-rose-500" />
           ) : (
             <img src={netpinLogo} className="w-10 h-10 opacity-60 grayscale" alt="NetPin Error" />
           )}
         </div>
-        <h2 className={`font-bold text-2xl ${isLocationError ? 'text-orange-400' : 'text-red-400'}`}>
-          {isLocationError ? 'Location Access Required' : 'Analysis Error'}
+        <h2 className={`font-bold text-2xl ${isLocationError ? 'text-orange-400' : (isTrackerError ? 'text-rose-500' : 'text-red-400')}`}>
+          {isLocationError ? 'Location Access Required' : (isTrackerError ? 'Connection Blocked by NetPin' : 'Analysis Error')}
         </h2>
         <p className="text-slate-400 mt-2 max-w-md">{displayError}</p>
         <button 
@@ -242,16 +245,32 @@ export default function Dashboard() {
   // Export Report Functionality
   const exportReport = () => {
     if (!data) return;
-    const reportData = {
-      timestamp: new Date().toISOString(),
-      netpinVersion: "1.0",
-      analysis: data
-    };
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: "application/json" });
+    
+    let blob;
+    let filename;
+    
+    if (settings.exportFormat === 'csv') {
+      const csvContent = `Domain,IP,Country,City,Trackers\n${data.domain},${data.serverLocation.ip},${data.serverLocation.country},${data.serverLocation.city},${data.trackers.length}`;
+      blob = new Blob([csvContent], { type: "text/csv" });
+      filename = `netpin-report-${data.domain}.csv`;
+    } else if (settings.exportFormat === 'txt') {
+      const txtContent = `NETPIN REPORT FOR ${data.domain}\n====================================\nServer IP: ${data.serverLocation.ip}\nLocation: ${data.serverLocation.city}, ${data.serverLocation.country}\nTrackers: ${data.trackers.length}\nRegistrar: ${data.whois?.registrar || 'Unknown'}`;
+      blob = new Blob([txtContent], { type: "text/plain" });
+      filename = `netpin-report-${data.domain}.txt`;
+    } else {
+      const reportData = {
+        timestamp: new Date().toISOString(),
+        netpinVersion: "1.0",
+        analysis: data
+      };
+      blob = new Blob([JSON.stringify(reportData, null, 2)], { type: "application/json" });
+      filename = `netpin-report-${data.domain}.json`;
+    }
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `netpin-report-${data.domain}.json`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -600,7 +619,9 @@ export default function Dashboard() {
                   <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">DNS Records (A & AAAA)</span>
                   <div className="flex flex-wrap gap-2">
                     {data.dns && data.dns.length > 0 ? (
-                      data.dns.map((record, i) => (
+                      data.dns
+                        .filter(record => settings.showIpv6 || record.type !== 'IPv6')
+                        .map((record, i) => (
                         <div key={i} className={`flex items-center gap-1.5 text-xs font-mono pl-2 pr-1 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`}>
                           <span>{record.ip}</span>
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${darkMode ? 'bg-indigo-500/20 text-indigo-200' : 'bg-indigo-500/20 text-indigo-700'}`}>
@@ -1038,6 +1059,28 @@ export default function Dashboard() {
                   </button>
                 </div>
 
+                {/* Strict Tracker Block */}
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-bold text-sm text-rose-400">Strict Tracker Blocking (Aggressive Mode)</h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Instantly block and halt analysis if ANY trackers are detected on the website.</p>
+                  </div>
+                  <button onClick={() => toggleSetting('strictTrackerBlock')} className="text-rose-500 hover:text-rose-400 ">
+                    {settings.strictTrackerBlock ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                  </button>
+                </div>
+
+                {/* Tracker Alerts */}
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-bold text-sm">High-Risk Tracker Alerts</h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Notify when navigating to websites with more than 10 active tracking scripts.</p>
+                  </div>
+                  <button onClick={() => toggleSetting('trackerAlerts')} className="text-blue-500 hover:text-blue-400 ">
+                    {settings.trackerAlerts ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                  </button>
+                </div>
+
                 {/* Green Alerts */}
                 <div className="flex justify-between items-center">
                   <div>
@@ -1046,6 +1089,45 @@ export default function Dashboard() {
                   </div>
                   <button onClick={() => toggleSetting('greenAlerts')} className="text-blue-500 hover:text-blue-400 ">
                     {settings.greenAlerts ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                  </button>
+                </div>
+
+                {/* IPv6 Display */}
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-bold text-sm">Show IPv6 Records</h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Display AAAA IPv6 records alongside standard IPv4 addresses in the dashboard.</p>
+                  </div>
+                  <button onClick={() => toggleSetting('showIpv6')} className="text-blue-500 hover:text-blue-400 ">
+                    {settings.showIpv6 ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                  </button>
+                </div>
+
+                {/* Export Format */}
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-bold text-sm">Default Export Format</h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Choose the default file type when downloading analysis reports.</p>
+                  </div>
+                  <select 
+                    value={settings.exportFormat} 
+                    onChange={(e) => updateSetting('exportFormat', e.target.value)}
+                    className={`text-sm px-3 py-1.5 rounded border outline-none ${darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300'}`}
+                  >
+                    <option value="json">JSON (.json)</option>
+                    <option value="csv">CSV (.csv)</option>
+                    <option value="txt">Text (.txt)</option>
+                  </select>
+                </div>
+
+                {/* Clear History */}
+                <div className="flex justify-between items-center pt-4 border-t border-slate-800/10 dark:border-slate-800/40">
+                  <div>
+                    <h3 className="font-bold text-sm text-red-500">Clear Analysis History</h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Permanently delete all locally stored connection scan logs.</p>
+                  </div>
+                  <button onClick={handleClearHistory} className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-lg text-xs font-bold transition-colors">
+                    Delete Local Data
                   </button>
                 </div>
 
