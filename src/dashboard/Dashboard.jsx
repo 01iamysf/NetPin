@@ -185,7 +185,7 @@ export default function Dashboard() {
       <div className={`w-full min-h-screen ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col items-center justify-center p-8 `}>
         <div className="relative flex items-center justify-center mb-6">
           <div className="w-20 h-20 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-          <Globe className="absolute w-8 h-8 text-blue-500 animate-pulse" />
+          <img src={netpinLogo} className="absolute w-8 h-8 animate-pulse" alt="NetPin Loading" />
         </div>
         <h2 className="font-bold text-2xl tracking-wider">NetPin</h2>
         <p className="text-slate-400 mt-2 animate-pulse">Gathering routing routes & green certifications...</p>
@@ -196,7 +196,9 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className={`w-full min-h-screen ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col items-center justify-center p-8 text-center `}>
-        <Globe className="w-16 h-16 text-red-500 mb-6 animate-pulse" />
+        <div className="w-20 h-20 rounded-[2rem] bg-red-500/10 flex items-center justify-center border border-red-500/20 mb-6 shadow-[0_0_40px_rgba(239,68,68,0.1)]">
+          <img src={netpinLogo} className="w-10 h-10 opacity-60 grayscale" alt="NetPin Error" />
+        </div>
         <h2 className="font-bold text-2xl text-red-400">Analysis Error</h2>
         <p className="text-slate-400 mt-2 max-w-md">{error}</p>
         <button 
@@ -212,7 +214,9 @@ export default function Dashboard() {
   if (!loading && !error && !data) {
     return (
       <div className={`w-full min-h-screen ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col items-center justify-center p-8 text-center `}>
-        <Globe className="w-16 h-16 text-blue-500 mb-6 opacity-80" />
+        <div className="w-20 h-20 rounded-[2rem] bg-blue-600/10 flex items-center justify-center border border-blue-500/20 mb-6 shadow-[0_0_40px_rgba(59,130,246,0.15)]">
+          <img src={netpinLogo} className="w-10 h-10" alt="NetPin Ready" />
+        </div>
         <h2 className="font-bold text-3xl mb-2">NetPin Ready</h2>
         <p className="text-slate-400 mt-2 max-w-md text-lg">Auto-analyze is currently disabled in your settings.</p>
         <button 
@@ -985,7 +989,7 @@ export default function Dashboard() {
             {/* Header Section */}
             <div className="flex flex-col items-center text-center mt-12 mb-16">
               <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(59,130,246,0.15)] ${darkMode ? 'bg-[#151c2e] border border-[#2e3b5e]' : 'bg-blue-50 border border-blue-200'}`}>
-                <Globe className={`w-10 h-10 ${darkMode ? 'text-blue-500' : 'text-blue-600'}`} strokeWidth={1.5} />
+                <img src={netpinLogo} className="w-10 h-10" alt="NetPin Logo" />
               </div>
               <h2 className="text-4xl font-extrabold tracking-wide bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent mb-4">
                 NetPin

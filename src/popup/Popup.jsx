@@ -7,7 +7,6 @@ import {
   Eye, 
   Lock, 
   MapPin, 
-  Globe, 
   Settings, 
   ExternalLink, 
   RefreshCw,
@@ -43,7 +42,9 @@ export default function Popup() {
   if (!loading && !error && !data) {
     return (
       <div className={`w-[380px] h-[550px] ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col items-center justify-center p-6 text-center`}>
-        <Globe className="w-16 h-16 text-blue-500 mb-6 opacity-80" />
+        <div className="w-20 h-20 rounded-[2rem] bg-blue-600/10 flex items-center justify-center border border-blue-500/20 mb-6 shadow-[0_0_40px_rgba(59,130,246,0.15)]">
+          <img src={netpinLogo} className="w-10 h-10" alt="NetPin Ready" />
+        </div>
         <h3 className="font-bold text-xl mb-2">NetPin Ready</h3>
         <p className="text-sm text-slate-400 mb-8 max-w-[240px]">Auto-analyze is off. Click below to analyze the current website connection.</p>
         <button 
@@ -67,7 +68,7 @@ export default function Popup() {
       <div className={`w-[380px] h-[550px] ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col items-center justify-center p-6 select-none`}>
         <div className="relative flex items-center justify-center">
           <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-          <Globe className="absolute w-6 h-6 text-blue-500 animate-pulse" />
+          <img src={netpinLogo} className="absolute w-6 h-6 animate-pulse" alt="NetPin Loading" />
         </div>
         <h3 className="mt-6 font-semibold text-lg tracking-wider text-blue-400">NetPin</h3>
         <p className="text-sm text-slate-400 mt-2 animate-pulse">Analyzing connection route...</p>
@@ -78,7 +79,9 @@ export default function Popup() {
   if (error) {
     return (
       <div className={`w-[380px] h-[550px] ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col items-center justify-center p-6 text-center`}>
-        <Globe className="w-12 h-12 text-red-500 mb-4" />
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20 mb-4 shadow-[0_0_30px_rgba(239,68,68,0.1)]">
+          <img src={netpinLogo} className="w-8 h-8 opacity-60 grayscale" alt="NetPin Error" />
+        </div>
         <h3 className="font-semibold text-lg text-red-400">Analysis Failed</h3>
         <p className="text-sm text-slate-400 mt-2 px-4">{error}</p>
         <button 
