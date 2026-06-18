@@ -763,9 +763,12 @@ export default function Dashboard() {
                   <div className="flex flex-wrap gap-2">
                     {data.dns && data.dns.length > 0 ? (
                       data.dns.map((ip, i) => (
-                        <span key={i} className={`text-xs font-mono px-2 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`}>
-                          {ip}
-                        </span>
+                        <div key={i} className={`flex items-center gap-1.5 text-xs font-mono pl-2 pr-1 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`}>
+                          <span>{ip}</span>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${darkMode ? 'bg-indigo-500/20 text-indigo-200' : 'bg-indigo-500/20 text-indigo-700'}`}>
+                            IPv4
+                          </span>
+                        </div>
                       ))
                     ) : (
                       <span className="text-xs text-slate-500">No A records found</span>
