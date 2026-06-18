@@ -70,6 +70,7 @@ export default function Dashboard() {
 
   // Actual scan history state
   const [scanHistory, setScanHistory] = useState([]);
+  const [clearedFeedback, setClearedFeedback] = useState(false);
 
   // Load history from storage on mount
   useEffect(() => {
@@ -130,6 +131,8 @@ export default function Dashboard() {
     } else {
       localStorage.setItem('scanHistory', JSON.stringify([]));
     }
+    setClearedFeedback(true);
+    setTimeout(() => setClearedFeedback(false), 2000);
   };
 
   // Custom marker icon creation with inline CSS
@@ -375,20 +378,20 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-6 md:gap-8 border-t md:border-t-0 md:border-l border-slate-800/20 dark:border-slate-800/60 pt-4 md:pt-0 md:pl-8">
-                  <div>
+                <div className="flex flex-col sm:flex-row gap-6 md:gap-8 border-t md:border-t-0 md:border-l border-slate-800/20 dark:border-slate-800/60 pt-4 md:pt-0 md:pl-8 min-w-0">
+                  <div className="min-w-0 max-w-[160px]">
                     <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">IP Address</span>
-                    <p className="text-sm font-extrabold mt-0.5">{data.ip}</p>
+                    <p className="text-sm font-extrabold mt-0.5 truncate" title={data.ip}>{data.ip}</p>
                   </div>
-                  <div>
+                  <div className="min-w-0 max-w-[140px]">
                     <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">ISP / ASN</span>
-                    <p className="text-sm font-extrabold mt-0.5 truncate max-w-[120px]" title={data.isp}>{data.hostingProvider}</p>
+                    <p className="text-sm font-extrabold mt-0.5 truncate" title={data.isp}>{data.hostingProvider}</p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Server Location</span>
                     <p className="text-sm font-extrabold mt-0.5 flex items-center gap-1.5">
-                      {flagUrl && <img src={flagUrl} className="w-4.5 h-3 object-cover rounded-sm" alt="Flag" />}
-                      {data.serverLocation.city}
+                      {flagUrl && <img src={flagUrl} className="w-4.5 h-3 object-cover rounded-sm shrink-0" alt="Flag" />}
+                      <span className="truncate">{data.serverLocation.city}</span>
                     </p>
                   </div>
                 </div>
@@ -829,9 +832,10 @@ export default function Dashboard() {
                 </div>
                 <button 
                   onClick={handleClearHistory}
-                  className="text-xs text-red-500 hover:text-red-400 font-semibold px-3 py-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/5 "
+                  disabled={clearedFeedback}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${clearedFeedback ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'text-red-500 hover:text-red-400 border-red-500/20 hover:bg-red-500/5'}`}
                 >
-                  Clear History
+                  {clearedFeedback ? '✓ Cleared!' : 'Clear History'}
                 </button>
               </div>
 
@@ -1126,8 +1130,12 @@ export default function Dashboard() {
                     <h3 className="font-bold text-sm text-red-500">Clear Analysis History</h3>
                     <p className="text-[11px] text-slate-500 mt-0.5">Permanently delete all locally stored connection scan logs.</p>
                   </div>
-                  <button onClick={handleClearHistory} className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-lg text-xs font-bold transition-colors">
-                    Delete Local Data
+                  <button 
+                    onClick={handleClearHistory} 
+                    disabled={clearedFeedback}
+                    className={`px-4 py-2 border rounded-lg text-xs font-bold transition-colors ${clearedFeedback ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/20'}`}
+                  >
+                    {clearedFeedback ? '✓ Deleted!' : 'Delete Local Data'}
                   </button>
                 </div>
 
