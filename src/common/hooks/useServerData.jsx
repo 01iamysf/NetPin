@@ -3,8 +3,7 @@ import { useSettings } from './useSettings';
 import { calculateHaversineDistance } from '../utils/haversine';
 import { generateMockData } from '../utils/mockData';
 
-// Default user fallback coordinates (Siliguri, India)
-const SILIGURI_COORDS = { lat: 26.7271, lon: 88.3953, city: "Siliguri", country: "India" };
+// Strict Location enforcement enabled
 
 export function useServerData() {
   const { settings, loaded: settingsLoaded } = useSettings();
@@ -88,90 +87,49 @@ export function useServerData() {
         setLoading(true);
         setError(null);
 
-        const domain = await getCleanDomain();
+        const rawDomain = await getCleanDomain();
+        const domain = rawDomain.trim().replace(/\/+$/, '');
         
-        // 1. Get User Position (IP-based lookup + browser Geolocation)
-        let userLocation = { ...SILIGURI_COORDS };
-        
-        // Fetch user's IP-based location with failover backup providers
-        let ipLocation = null;
+        // 1. Get User Position (STRICT GPS REQUIREMENT)
+        if (!navigator.geolocation) {
+          throw new Error('LOCATION_DENIED: Geolocation is not supported by your browser. Cannot proceed.');
+        }
+
+        let userLocation = null;
         try {
-          const userIpRes = await fetch('http://ip-api.com/json');
-          if (userIpRes.ok) {
-            const userIpData = await userIpRes.json();
-            if (userIpData && userIpData.status === 'success') {
-              ipLocation = {
-                lat: userIpData.lat,
-                lon: userIpData.lon,
-                city: userIpData.city || SILIGURI_COORDS.city,
-                country: userIpData.country || SILIGURI_COORDS.country
-              };
-            }
-          }
-        } catch (e) {
-          console.warn("Primary IP lookup (ip-api.com) failed, trying backup:", e);
-        }
+          const gpsCoords = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => resolve(pos.coords),
+              (err) => reject(err),
+              { enableHighAccuracy: true }
+            );
+          });
+          
+          userLocation = {
+            lat: gpsCoords.latitude,
+            lon: gpsCoords.longitude,
+            city: "Unknown City",
+            country: "Unknown Country"
+          };
 
-        if (!ipLocation) {
+          // Reverse-geocode coordinates to get the user's actual city and country
           try {
-            // Backup provider: freeipapi.com (HTTPS supported, no keys required)
-            const backupRes = await fetch('https://freeipapi.com/api/json');
-            if (backupRes.ok) {
-              const backupData = await backupRes.json();
-              if (backupData) {
-                ipLocation = {
-                  lat: backupData.latitude,
-                  lon: backupData.longitude,
-                  city: backupData.cityName || SILIGURI_COORDS.city,
-                  country: backupData.countryName || SILIGURI_COORDS.country
-                };
+            const geoRes = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${gpsCoords.latitude}&lon=${gpsCoords.longitude}`,
+              { headers: { 'Accept-Language': 'en' } }
+            );
+            if (geoRes.ok) {
+              const geoData = await geoRes.json();
+              if (geoData && geoData.address) {
+                userLocation.city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.suburb || geoData.address.state_district || "Unknown City";
+                userLocation.country = geoData.address.country || "Unknown Country";
               }
             }
-          } catch (backupErr) {
-            console.warn("Backup IP lookup (freeipapi.com) failed:", backupErr);
+          } catch (geoErr) {
+            console.warn("Reverse geocoding failed:", geoErr);
           }
-        }
-
-        if (ipLocation) {
-          userLocation = ipLocation;
-        }
-
-        // Try refining user location using GPS Geolocation (blocking with 3s timeout)
-        if (settings.useGps !== false && navigator.geolocation) {
-          try {
-            const gpsCoords = await new Promise((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(
-                (pos) => resolve(pos.coords),
-                (err) => reject(err),
-                { timeout: 3000, enableHighAccuracy: true }
-              );
-            });
-            if (gpsCoords) {
-              userLocation.lat = gpsCoords.latitude;
-              userLocation.lon = gpsCoords.longitude;
-              
-              // Reverse-geocode coordinates to get the user's actual city and country
-              try {
-                const geoRes = await fetch(
-                  `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${gpsCoords.latitude}&lon=${gpsCoords.longitude}`,
-                  { headers: { 'Accept-Language': 'en' } }
-                );
-                if (geoRes.ok) {
-                  const geoData = await geoRes.json();
-                  if (geoData && geoData.address) {
-                    const city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.suburb || geoData.address.state_district || SILIGURI_COORDS.city;
-                    const country = geoData.address.country || SILIGURI_COORDS.country;
-                    userLocation.city = city;
-                    userLocation.country = country;
-                  }
-                }
-              } catch (geoErr) {
-                console.warn("Reverse geocoding failed, keeping IP-based location names:", geoErr);
-              }
-            }
-          } catch (gpsErr) {
-            console.log("GPS Geolocation failed or timed out, using IP/default location:", gpsErr);
-          }
+        } catch (gpsErr) {
+          throw new Error('LOCATION_DENIED: Please enable location services and grant location permission to run this analysis.');
         }
 
         // 2. Fetch Server Geolocation from IP-API & Measure Latency
@@ -185,7 +143,7 @@ export function useServerData() {
         const latency = Math.round(endTime - startTime);
 
         if (serverData.status !== 'success') {
-          throw new Error(serverData.message || 'IP lookup failed for domain.');
+          throw new Error(`ip-api failed with '${serverData.message}'. Domain tested: "${domain}"`);
         }
 
         // 3. Fetch Green Check status from Green Web Foundation
@@ -252,11 +210,20 @@ export function useServerData() {
         // Fetch DNS and WHOIS data
         let dnsRecords = [];
         try {
-          const dnsRes = await fetch(`https://dns.google/resolve?name=${domain}&type=A`);
-          if (dnsRes.ok) {
-            const dnsData = await dnsRes.json();
-            if (dnsData.Answer) {
-              dnsRecords = dnsData.Answer.map(a => a.data);
+          // Fetch A records (IPv4)
+          const dnsResA = await fetch(`https://dns.google/resolve?name=${domain}&type=A`);
+          if (dnsResA.ok) {
+            const dnsDataA = await dnsResA.json();
+            if (dnsDataA.Answer) {
+              dnsRecords = [...dnsRecords, ...dnsDataA.Answer.map(a => ({ ip: a.data, type: 'IPv4' }))];
+            }
+          }
+          // Fetch AAAA records (IPv6)
+          const dnsResAAAA = await fetch(`https://dns.google/resolve?name=${domain}&type=AAAA`);
+          if (dnsResAAAA.ok) {
+            const dnsDataAAAA = await dnsResAAAA.json();
+            if (dnsDataAAAA.Answer) {
+              dnsRecords = [...dnsRecords, ...dnsDataAAAA.Answer.map(a => ({ ip: a.data, type: 'IPv6' }))];
             }
           }
         } catch (e) {

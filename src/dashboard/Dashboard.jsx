@@ -195,18 +195,27 @@ export default function Dashboard() {
   }
 
   if (error) {
+    const isLocationError = error.includes('LOCATION_DENIED');
+    const displayError = isLocationError ? error.replace('LOCATION_DENIED: ', '') : error;
+    
     return (
       <div className={`w-full min-h-screen ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col items-center justify-center p-8 text-center `}>
-        <div className="w-20 h-20 rounded-[2rem] bg-red-500/10 flex items-center justify-center border border-red-500/20 mb-6 shadow-[0_0_40px_rgba(239,68,68,0.1)]">
-          <img src={netpinLogo} className="w-10 h-10 opacity-60 grayscale" alt="NetPin Error" />
+        <div className={`w-20 h-20 rounded-[2rem] ${isLocationError ? 'bg-orange-500/10 border-orange-500/20 shadow-[0_0_40px_rgba(249,115,22,0.1)]' : 'bg-red-500/10 border-red-500/20 shadow-[0_0_40px_rgba(239,68,68,0.1)]'} flex items-center justify-center border mb-6`}>
+          {isLocationError ? (
+            <MapPin className="w-10 h-10 text-orange-400" />
+          ) : (
+            <img src={netpinLogo} className="w-10 h-10 opacity-60 grayscale" alt="NetPin Error" />
+          )}
         </div>
-        <h2 className="font-bold text-2xl text-red-400">Analysis Error</h2>
-        <p className="text-slate-400 mt-2 max-w-md">{error}</p>
+        <h2 className={`font-bold text-2xl ${isLocationError ? 'text-orange-400' : 'text-red-400'}`}>
+          {isLocationError ? 'Location Access Required' : 'Analysis Error'}
+        </h2>
+        <p className="text-slate-400 mt-2 max-w-md">{displayError}</p>
         <button 
           onClick={() => window.location.reload()} 
           className="mt-8 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg flex items-center gap-2"
         >
-          Retry Audit
+          {isLocationError ? 'Grant Permission & Retry' : 'Retry Audit'}
         </button>
       </div>
     );
@@ -569,20 +578,44 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Informational Widget */}
-              <div className={`border rounded-2xl p-5 shadow-xl border-dashed ${darkMode ? 'bg-[#0d1222] border-blue-500/20 text-slate-400' : 'bg-blue-50/50 border-blue-200 text-slate-600'}`}>
-                <div className="flex gap-3">
-                  <Info className="w-6 h-6 text-blue-500 shrink-0" />
-                  <div>
-                    <h4 className={`font-bold text-xs mb-1 ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>
-                      Why Server Location Matters?
-                    </h4>
-                    <p className="text-[11px] leading-relaxed">
-                      Websites you visit store your data on global hosting servers. Knowing where these nodes reside helps you comprehend jurisdiction data protection laws, connection route path, latency speed, and the overall carbon impact of your network queries.
-                    </p>
+              {/* Domain Intelligence Card */}
+              <div className={`border rounded-2xl p-5 flex flex-col gap-4 shadow-xl mb-6 ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <Globe className={`w-5 h-5 ${darkMode ? 'text-indigo-400' : 'text-indigo-500'}`} />
+                  <h3 className="font-bold text-sm">Domain Intelligence & WHOIS</h3>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`p-3 rounded-xl border ${darkMode ? 'bg-slate-800/30 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Registrar</span>
+                    <span className="text-xs font-semibold">{data.whois?.registrar || 'Unknown'}</span>
+                  </div>
+                  <div className={`p-3 rounded-xl border ${darkMode ? 'bg-slate-800/30 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Registration Date</span>
+                    <span className="text-xs font-semibold">{data.whois?.registered || 'Unknown'}</span>
+                  </div>
+                </div>
+
+                <div className={`p-3 rounded-xl border ${darkMode ? 'bg-slate-800/30 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">DNS Records (A & AAAA)</span>
+                  <div className="flex flex-wrap gap-2">
+                    {data.dns && data.dns.length > 0 ? (
+                      data.dns.map((record, i) => (
+                        <div key={i} className={`flex items-center gap-1.5 text-xs font-mono pl-2 pr-1 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`}>
+                          <span>{record.ip}</span>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${darkMode ? 'bg-indigo-500/20 text-indigo-200' : 'bg-indigo-500/20 text-indigo-700'}`}>
+                            {record.type}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-xs text-slate-500">No DNS records found</span>
+                    )}
                   </div>
                 </div>
               </div>
+
+
             </div>
 
             {/* Right Column (Stacked Cards) */}
@@ -740,42 +773,22 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              {/* Domain Intelligence Card */}
-              <div className={`border rounded-2xl p-5 flex flex-col gap-4 shadow-xl mb-6 ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <Globe className={`w-5 h-5 ${darkMode ? 'text-indigo-400' : 'text-indigo-500'}`} />
-                  <h3 className="font-bold text-sm">Domain Intelligence & WHOIS</h3>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className={`p-3 rounded-xl border ${darkMode ? 'bg-slate-800/30 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
-                    <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Registrar</span>
-                    <span className="text-xs font-semibold">{data.whois?.registrar || 'Unknown'}</span>
-                  </div>
-                  <div className={`p-3 rounded-xl border ${darkMode ? 'bg-slate-800/30 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
-                    <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Registration Date</span>
-                    <span className="text-xs font-semibold">{data.whois?.registered || 'Unknown'}</span>
-                  </div>
-                </div>
-
-                <div className={`p-3 rounded-xl border ${darkMode ? 'bg-slate-800/30 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">DNS Records (A)</span>
-                  <div className="flex flex-wrap gap-2">
-                    {data.dns && data.dns.length > 0 ? (
-                      data.dns.map((ip, i) => (
-                        <div key={i} className={`flex items-center gap-1.5 text-xs font-mono pl-2 pr-1 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`}>
-                          <span>{ip}</span>
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${darkMode ? 'bg-indigo-500/20 text-indigo-200' : 'bg-indigo-500/20 text-indigo-700'}`}>
-                            IPv4
-                          </span>
-                        </div>
-                      ))
-                    ) : (
-                      <span className="text-xs text-slate-500">No A records found</span>
-                    )}
+              {/* Informational Widget */}
+              <div className={`border rounded-2xl p-5 shadow-xl border-dashed ${darkMode ? 'bg-[#0d1222] border-blue-500/20 text-slate-400' : 'bg-blue-50/50 border-blue-200 text-slate-600'}`}>
+                <div className="flex gap-3">
+                  <Info className="w-6 h-6 text-blue-500 shrink-0" />
+                  <div>
+                    <h4 className={`font-bold text-xs mb-1 ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>
+                      Why Server Location Matters?
+                    </h4>
+                    <p className="text-[11px] leading-relaxed">
+                      Websites you visit store your data on global hosting servers. Knowing where these nodes reside helps you comprehend jurisdiction data protection laws, connection route path, latency speed, and the overall carbon impact of your network queries.
+                    </p>
                   </div>
                 </div>
               </div>
+
+
 
             </div>
           </>
@@ -1036,16 +1049,6 @@ export default function Dashboard() {
                   </button>
                 </div>
 
-                {/* Use GPS */}
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-bold text-sm">Request Precise Geolocation (GPS)</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Utilize browser GPS services for accurate distance coordinates instead of user IP location.</p>
-                  </div>
-                  <button onClick={() => toggleSetting('useGps')} className="text-blue-500 hover:text-blue-400 ">
-                    {settings.useGps ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -1069,13 +1072,13 @@ export default function Dashboard() {
               <p className={`text-[15px] leading-relaxed max-w-2xl font-medium ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                 NetPin is a privacy and transparency extension that helps you<br />
                 see the hidden details behind every website you visit.<br />
-                Server locations, network routes, privacy laws and carbon impact —<br />
-                all in one place.
+                Server locations, network routes, privacy laws, WHOIS intelligence, and carbon impact —<br />
+                all in one place with exportable reports.
               </p>
             </div>
 
             {/* Feature Cards Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 w-full mb-8">
               {/* Card 1 */}
               <div className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
                 <div className="mb-4">
@@ -1115,6 +1118,14 @@ export default function Dashboard() {
                 </div>
                 <h3 className={`font-bold text-sm mb-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Data Route</h3>
                 <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Discover how far<br/>your data<br/>travels.</p>
+              </div>
+              {/* Card 6 */}
+              <div className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+                <div className="mb-4">
+                  <Globe className="w-8 h-8 text-purple-400" strokeWidth={1.5} />
+                </div>
+                <h3 className={`font-bold text-sm mb-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Domain WHOIS</h3>
+                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Lookup DNS and<br/>Registrar<br/>intelligence.</p>
               </div>
             </div>
 

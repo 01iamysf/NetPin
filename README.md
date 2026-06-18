@@ -1,6 +1,6 @@
 # NetPin
 
-NetPin is an open source Chrome extension that gives you transparent details about the websites you visit. It provides real-time information on server location coordinates, network latency pathways, carbon footprint scores, and localized privacy protection laws.
+NetPin is an open source Chrome extension that gives you transparent details about the websites you visit. It provides real-time information on server location coordinates, network latency pathways, carbon footprint scores, localized privacy protection laws, and detailed domain intelligence including WHOIS registrar data and DNS records. You can even export comprehensive JSON reports of your connection audits.
 
 ## Snapshots
 

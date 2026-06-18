@@ -3,8 +3,7 @@ import { useState, useEffect } from 'react';
 const DEFAULT_SETTINGS = {
   autoAnalyze: true,
   blockTrackers: true,
-  greenAlerts: false,
-  useGps: true
+  greenAlerts: false
 };
 
 export function useSettings() {
