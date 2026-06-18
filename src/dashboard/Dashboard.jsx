@@ -288,7 +288,7 @@ export default function Dashboard() {
   const serverPosition = [data.serverLocation.lat, data.serverLocation.lon];
   const polylineCurve = getCurvePoints(youPosition, serverPosition);
 
-  const faviconUrl = `https://www.google.com/s2/favicons?domain=${data.domain}&sz=64`;
+  const faviconUrl = `https://icons.duckduckgo.com/ip3/${data.domain}.ico`;
   const flagUrl = data.serverLocation.countryCode 
     ? `https://flagcdn.com/w40/${data.serverLocation.countryCode.toLowerCase()}.png`
     : null;
@@ -364,7 +364,7 @@ export default function Dashboard() {
                       src={faviconUrl} 
                       alt={data.domain} 
                       className="w-full h-full object-contain rounded"
-                      onError={(e) => { e.target.src = 'https://www.google.com/s2/favicons?domain=google.com&sz=64'; }}
+                      onError={(e) => { e.target.src = 'https://icons.duckduckgo.com/ip3/example.com.ico'; }}
                     />
                   </div>
                   <div>
@@ -776,7 +776,7 @@ export default function Dashboard() {
                           src={tracker.favicon} 
                           className="w-4 h-4 rounded-sm" 
                           alt={tracker.name} 
-                          onError={(e) => { e.target.src = 'https://www.google.com/s2/favicons?domain=google.com&sz=16'; }}
+                          onError={(e) => { e.target.src = 'https://icons.duckduckgo.com/ip3/example.com.ico'; }}
                         />
                         <div>
                           <h4 className="font-bold text-xs">{tracker.name}</h4>
@@ -866,10 +866,10 @@ export default function Dashboard() {
                         <tr key={i} className={darkMode ? 'hover:bg-slate-800/10' : 'hover:bg-slate-50'}>
                           <td className={`py-3.5 font-bold flex items-center gap-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
                             <img 
-                              src={`https://www.google.com/s2/favicons?domain=${item.domain}&sz=32`} 
-                              className="w-4.5 h-4.5 rounded"
-                              alt=""
-                              onError={(e) => { e.target.src = 'https://www.google.com/s2/favicons?domain=google.com&sz=16'; }}
+                              src={`https://icons.duckduckgo.com/ip3/${item.domain}.ico`} 
+                              alt="favicon" 
+                              className="w-4 h-4 rounded-sm"
+                              onError={(e) => { e.target.src = 'https://icons.duckduckgo.com/ip3/example.com.ico'; }}
                             />
                             {item.domain}
                           </td>

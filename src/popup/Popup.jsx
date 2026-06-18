@@ -116,7 +116,7 @@ export default function Popup() {
   const midY = Math.min(youCoords.y, serverCoords.y) - 25;
   const pathD = `M ${youCoords.x} ${youCoords.y} Q ${midX} ${midY} ${serverCoords.x} ${serverCoords.y}`;
 
-  const faviconUrl = `https://www.google.com/s2/favicons?domain=${data.domain}&sz=64`;
+  const faviconUrl = `https://icons.duckduckgo.com/ip3/${data.domain}.ico`;
   const flagUrl = data.serverLocation.countryCode 
     ? `https://flagcdn.com/w40/${data.serverLocation.countryCode.toLowerCase()}.png`
     : null;
@@ -156,7 +156,7 @@ export default function Popup() {
               src={faviconUrl} 
               alt={data.domain} 
               className="w-full h-full object-contain rounded"
-              onError={(e) => { e.target.src = 'https://www.google.com/s2/favicons?domain=google.com&sz=64'; }}
+              onError={(e) => { e.target.src = 'https://icons.duckduckgo.com/ip3/example.com.ico'; }}
             />
           </div>
           <div>
