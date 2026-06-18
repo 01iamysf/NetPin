@@ -36,7 +36,10 @@ import {
   Github,
   Linkedin,
   RefreshCw,
-  Download
+  Download,
+  Monitor,
+  Bell,
+  Database
 } from 'lucide-react';
 
 import { getCookieInfo } from '../common/utils/cookieExplainers';
@@ -1040,105 +1043,144 @@ export default function Dashboard() {
                 Customize NetPin scan settings, notifications, and analytics engines.
               </p>
 
-              <div className="space-y-6 max-w-xl">
-                {/* Auto Analyze */}
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-bold text-sm">Auto-analyze current tabs</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Automatically trigger geolocation scans when loading new webpages.</p>
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {/* CATEGORY 1: Analysis & Display */}
+                <div className={`border rounded-xl p-5 ${darkMode ? 'border-slate-800/60 bg-slate-800/20' : 'border-slate-200 bg-slate-50/50'}`}>
+                  <h3 className={`font-bold flex items-center gap-2 mb-4 pb-3 border-b ${darkMode ? 'border-slate-700 text-blue-400' : 'border-slate-200 text-blue-600'}`}>
+                    <Monitor className="w-4 h-4" />
+                    Analysis & Display
+                  </h3>
+                  
+                  <div className="space-y-5">
+                    {/* Auto Analyze */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-bold text-sm">Auto-analyze current tabs</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Automatically trigger geolocation scans when loading new webpages.</p>
+                      </div>
+                      <button onClick={() => toggleSetting('autoAnalyze')} className="text-blue-500 hover:text-blue-400 ">
+                        {settings.autoAnalyze ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                      </button>
+                    </div>
+
+                    {/* IPv6 Display */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-bold text-sm">Show IPv6 Records</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Display AAAA IPv6 records alongside standard IPv4 addresses in the dashboard.</p>
+                      </div>
+                      <button onClick={() => toggleSetting('showIpv6')} className="text-blue-500 hover:text-blue-400 ">
+                        {settings.showIpv6 ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                      </button>
+                    </div>
+
+                    {/* Export Format */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-bold text-sm">Default Export Format</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Choose the default file type when downloading analysis reports.</p>
+                      </div>
+                      <select 
+                        value={settings.exportFormat} 
+                        onChange={(e) => updateSetting('exportFormat', e.target.value)}
+                        className={`text-sm px-3 py-1.5 rounded border outline-none ${darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300'}`}
+                      >
+                        <option value="json">JSON (.json)</option>
+                        <option value="csv">CSV (.csv)</option>
+                        <option value="txt">Text (.txt)</option>
+                      </select>
+                    </div>
                   </div>
-                  <button onClick={() => toggleSetting('autoAnalyze')} className="text-blue-500 hover:text-blue-400 ">
-                    {settings.autoAnalyze ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
-                  </button>
                 </div>
 
-                {/* Block Trackers */}
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-bold text-sm">Enable Anti-Tracker Blockers</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Actively intercept known ad networks, analytical spiders, and tracker scripts.</p>
+                {/* CATEGORY 2: Privacy & Security */}
+                <div className={`border rounded-xl p-5 ${darkMode ? 'border-slate-800/60 bg-slate-800/20' : 'border-slate-200 bg-slate-50/50'}`}>
+                  <h3 className={`font-bold flex items-center gap-2 mb-4 pb-3 border-b ${darkMode ? 'border-slate-700 text-purple-400' : 'border-slate-200 text-purple-600'}`}>
+                    <Shield className="w-4 h-4" />
+                    Privacy & Security
+                  </h3>
+                  
+                  <div className="space-y-5">
+                    {/* Block Trackers */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-bold text-sm">Enable Anti-Tracker Blockers</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Actively intercept known ad networks, analytical spiders, and tracker scripts.</p>
+                      </div>
+                      <button onClick={() => toggleSetting('blockTrackers')} className="text-blue-500 hover:text-blue-400 ">
+                        {settings.blockTrackers ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                      </button>
+                    </div>
+
+                    {/* Strict Tracker Block */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-bold text-sm text-rose-400">Strict Tracker Blocking (Aggressive Mode)</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Instantly block and halt analysis if ANY trackers are detected on the website.</p>
+                      </div>
+                      <button onClick={() => toggleSetting('strictTrackerBlock')} className="text-rose-500 hover:text-rose-400 ">
+                        {settings.strictTrackerBlock ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                      </button>
+                    </div>
                   </div>
-                  <button onClick={() => toggleSetting('blockTrackers')} className="text-blue-500 hover:text-blue-400 ">
-                    {settings.blockTrackers ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
-                  </button>
                 </div>
 
-                {/* Strict Tracker Block */}
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-bold text-sm text-rose-400">Strict Tracker Blocking (Aggressive Mode)</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Instantly block and halt analysis if ANY trackers are detected on the website.</p>
+                {/* CATEGORY 3: Notifications & Alerts */}
+                <div className={`border rounded-xl p-5 ${darkMode ? 'border-slate-800/60 bg-slate-800/20' : 'border-slate-200 bg-slate-50/50'}`}>
+                  <h3 className={`font-bold flex items-center gap-2 mb-4 pb-3 border-b ${darkMode ? 'border-slate-700 text-orange-400' : 'border-slate-200 text-orange-600'}`}>
+                    <Bell className="w-4 h-4" />
+                    Notifications & Alerts
+                  </h3>
+                  
+                  <div className="space-y-5">
+                    {/* Tracker Alerts */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-bold text-sm">High-Risk Tracker Alerts</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Notify when navigating to websites with more than 10 active tracking scripts.</p>
+                      </div>
+                      <button onClick={() => toggleSetting('trackerAlerts')} className="text-blue-500 hover:text-blue-400 ">
+                        {settings.trackerAlerts ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                      </button>
+                    </div>
+
+                    {/* Green Alerts */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-bold text-sm">Carbon Warning Alerts</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Notify when navigating to websites running on dirty coal/fossil hosting servers.</p>
+                      </div>
+                      <button onClick={() => toggleSetting('greenAlerts')} className="text-blue-500 hover:text-blue-400 ">
+                        {settings.greenAlerts ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                      </button>
+                    </div>
                   </div>
-                  <button onClick={() => toggleSetting('strictTrackerBlock')} className="text-rose-500 hover:text-rose-400 ">
-                    {settings.strictTrackerBlock ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
-                  </button>
                 </div>
 
-                {/* Tracker Alerts */}
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-bold text-sm">High-Risk Tracker Alerts</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Notify when navigating to websites with more than 10 active tracking scripts.</p>
+                {/* CATEGORY 4: Data Management */}
+                <div className={`border rounded-xl p-5 ${darkMode ? 'border-slate-800/60 bg-slate-800/20' : 'border-slate-200 bg-slate-50/50'}`}>
+                  <h3 className={`font-bold flex items-center gap-2 mb-4 pb-3 border-b ${darkMode ? 'border-slate-700 text-emerald-400' : 'border-slate-200 text-emerald-600'}`}>
+                    <Database className="w-4 h-4" />
+                    Data Management
+                  </h3>
+                  
+                  <div className="space-y-5">
+                    {/* Clear History */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-bold text-sm text-red-500">Clear Analysis History</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Permanently delete all locally stored connection scan logs.</p>
+                      </div>
+                      <button 
+                        onClick={handleClearHistory} 
+                        disabled={clearedFeedback}
+                        className={`px-4 py-2 border rounded-lg text-xs font-bold transition-colors ${clearedFeedback ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/20'}`}
+                      >
+                        {clearedFeedback ? '✓ Deleted!' : 'Delete Local Data'}
+                      </button>
+                    </div>
                   </div>
-                  <button onClick={() => toggleSetting('trackerAlerts')} className="text-blue-500 hover:text-blue-400 ">
-                    {settings.trackerAlerts ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
-                  </button>
                 </div>
-
-                {/* Green Alerts */}
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-bold text-sm">Carbon Warning Alerts</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Notify when navigating to websites running on dirty coal/fossil hosting servers.</p>
-                  </div>
-                  <button onClick={() => toggleSetting('greenAlerts')} className="text-blue-500 hover:text-blue-400 ">
-                    {settings.greenAlerts ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
-                  </button>
-                </div>
-
-                {/* IPv6 Display */}
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-bold text-sm">Show IPv6 Records</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Display AAAA IPv6 records alongside standard IPv4 addresses in the dashboard.</p>
-                  </div>
-                  <button onClick={() => toggleSetting('showIpv6')} className="text-blue-500 hover:text-blue-400 ">
-                    {settings.showIpv6 ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
-                  </button>
-                </div>
-
-                {/* Export Format */}
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-bold text-sm">Default Export Format</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Choose the default file type when downloading analysis reports.</p>
-                  </div>
-                  <select 
-                    value={settings.exportFormat} 
-                    onChange={(e) => updateSetting('exportFormat', e.target.value)}
-                    className={`text-sm px-3 py-1.5 rounded border outline-none ${darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300'}`}
-                  >
-                    <option value="json">JSON (.json)</option>
-                    <option value="csv">CSV (.csv)</option>
-                    <option value="txt">Text (.txt)</option>
-                  </select>
-                </div>
-
-                {/* Clear History */}
-                <div className="flex justify-between items-center pt-4 border-t border-slate-800/10 dark:border-slate-800/40">
-                  <div>
-                    <h3 className="font-bold text-sm text-red-500">Clear Analysis History</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Permanently delete all locally stored connection scan logs.</p>
-                  </div>
-                  <button 
-                    onClick={handleClearHistory} 
-                    disabled={clearedFeedback}
-                    className={`px-4 py-2 border rounded-lg text-xs font-bold transition-colors ${clearedFeedback ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/20'}`}
-                  >
-                    {clearedFeedback ? '✓ Deleted!' : 'Delete Local Data'}
-                  </button>
-                </div>
-
               </div>
             </div>
           </div>
