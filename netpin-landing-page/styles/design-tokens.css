@@ -1,0 +1,85 @@
+:root {
+  /* Colors - Primary */
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  
+  /* Colors - Secondary & Accent */
+  --color-purple-400: #c084fc;
+  --color-purple-500: #a855f7;
+  --color-purple-600: #9333ea;
+  --color-indigo-300: #a5b4fc;
+  --color-indigo-400: #818cf8;
+  --color-indigo-500: #6366f1;
+  --color-indigo-600: #4f46e5;
+  
+  /* Colors - Semantic */
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-amber-500: #f59e0b;
+  --color-orange-400: #fb923c;
+  --color-orange-500: #f97316;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-rose-500: #f43f5e;
+
+  /* Theme Defaults (Light Mode Base) */
+  --bg-body: #f8fafc;        /* slate-50 */
+  --bg-card: #ffffff;        /* white */
+  --bg-card-hover: #f1f5f9;  /* slate-100 */
+  --bg-sub-card: #f8fafc;
+  --text-main: #1e293b;      /* slate-800 */
+  --text-muted: #64748b;     /* slate-500 */
+  --text-inverse: #ffffff;
+  --border-color: #e2e8f0;   /* slate-200 */
+  --border-color-light: #f1f5f9; /* slate-100 */
+  
+  --shadow-color: rgba(0, 0, 0, 0.05);
+  --shadow-primary: rgba(59, 130, 246, 0.15);
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  /* Radii */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Theme overrides class (if dark mode is active) */
+:root[data-theme="dark"] {
+  --bg-body: #0a0e1a;        
+  --bg-card: #0f172a;        
+  --bg-card-hover: #1e293b;  
+  --bg-sub-card: #0c1220;    
+  --text-main: #e2e8f0;      
+  --text-muted: #94a3b8;     
+  --border-color: #1e293b;   
+  --border-color-light: rgba(30, 41, 59, 0.5);
+  
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
