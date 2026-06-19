@@ -88,7 +88,9 @@ export function useServerData() {
         setError(null);
 
         const rawDomain = await getCleanDomain();
-        const domain = rawDomain.trim().replace(/\/+$/, '');
+        // Aggressively clean the domain: trim whitespace, remove trailing slashes, 
+        // and remove ANY character that is not a letter, number, dot, or hyphen.
+        const domain = rawDomain.trim().replace(/\/+$/, '').replace(/[^\w.-]/g, '');
         
         // 1. Get User Position (STRICT GPS REQUIREMENT)
         if (!navigator.geolocation) {
@@ -101,7 +103,7 @@ export function useServerData() {
             navigator.geolocation.getCurrentPosition(
               (pos) => resolve(pos.coords),
               (err) => reject(err),
-              { enableHighAccuracy: true }
+              { enableHighAccuracy: true, timeout: 5000 }
             );
           });
           
@@ -129,7 +131,22 @@ export function useServerData() {
             console.warn("Reverse geocoding failed:", geoErr);
           }
         } catch (gpsErr) {
-          throw new Error('LOCATION_DENIED: Please enable location services and grant location permission to run this analysis.');
+          console.warn("GPS failed or denied, falling back to IP-based location:", gpsErr);
+          try {
+            const ipRes = await fetch('http://ip-api.com/json/');
+            if (!ipRes.ok) throw new Error('IP fallback failed');
+            const ipData = await ipRes.json();
+            if (ipData.status !== 'success') throw new Error('IP fallback returned error');
+            
+            userLocation = {
+              lat: ipData.lat,
+              lon: ipData.lon,
+              city: ipData.city || "Unknown City",
+              country: ipData.country || "Unknown Country"
+            };
+          } catch (ipErr) {
+            throw new Error('LOCATION_DENIED: Please enable location services and grant location permission to run this analysis.');
+          }
         }
 
         // 2. Fetch Server Geolocation from IP-API & Measure Latency
