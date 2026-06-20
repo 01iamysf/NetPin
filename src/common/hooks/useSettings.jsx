@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 const DEFAULT_SETTINGS = {
   autoAnalyze: true,
@@ -7,7 +7,7 @@ const DEFAULT_SETTINGS = {
   trackerAlerts: false,
   greenAlerts: false,
   showIpv6: true,
-  exportFormat: 'json'
+  exportFormat: "json",
 };
 
 export function useSettings() {
@@ -16,8 +16,12 @@ export function useSettings() {
 
   // Load initial settings
   useEffect(() => {
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get(['netpin_settings'], (result) => {
+    if (
+      typeof chrome !== "undefined" &&
+      chrome.storage &&
+      chrome.storage.local
+    ) {
+      chrome.storage.local.get(["netpin_settings"], (result) => {
         if (result.netpin_settings) {
           setSettingsState(result.netpin_settings);
         }
@@ -25,7 +29,7 @@ export function useSettings() {
       });
     } else {
       // Fallback for local development (browser environment without extension context)
-      const local = localStorage.getItem('netpin_settings');
+      const local = localStorage.getItem("netpin_settings");
       if (local) {
         try {
           setSettingsState(JSON.parse(local));
@@ -40,10 +44,14 @@ export function useSettings() {
     const newSettings = { ...settings, [key]: !settings[key] };
     setSettingsState(newSettings);
 
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+    if (
+      typeof chrome !== "undefined" &&
+      chrome.storage &&
+      chrome.storage.local
+    ) {
       chrome.storage.local.set({ netpin_settings: newSettings });
     } else {
-      localStorage.setItem('netpin_settings', JSON.stringify(newSettings));
+      localStorage.setItem("netpin_settings", JSON.stringify(newSettings));
     }
   };
 
@@ -51,10 +59,14 @@ export function useSettings() {
     const newSettings = { ...settings, [key]: value };
     setSettingsState(newSettings);
 
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+    if (
+      typeof chrome !== "undefined" &&
+      chrome.storage &&
+      chrome.storage.local
+    ) {
       chrome.storage.local.set({ netpin_settings: newSettings });
     } else {
-      localStorage.setItem('netpin_settings', JSON.stringify(newSettings));
+      localStorage.setItem("netpin_settings", JSON.stringify(newSettings));
     }
   };
 

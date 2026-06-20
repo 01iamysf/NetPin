@@ -1,21 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useServerData } from '../common/hooks/useServerData';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import { 
-  Shield, 
-  Leaf, 
-  Eye, 
-  Lock, 
-  MapPin, 
-  Globe, 
-  Cpu, 
-  Clock, 
-  TrendingUp, 
-  Sun, 
-  Moon, 
-  Settings, 
-  Menu,
+import React, { useState, useEffect } from "react";
+import { useServerData } from "../common/hooks/useServerData";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  Polyline,
+  useMap,
+} from "react-leaflet";
+import L from "leaflet";
+import {
+  Shield,
+  Leaf,
+  Eye,
+  Lock,
+  MapPin,
+  Globe,
+  Cpu,
+  Clock,
+  TrendingUp,
+  Sun,
+  Moon,
+  Settings,
   ChevronRight,
   Compass,
   History,
@@ -23,8 +29,6 @@ import {
   Info,
   ExternalLink,
   ShieldCheck,
-  CheckCircle,
-  HelpCircle,
   ToggleLeft,
   ToggleRight,
   Trash2,
@@ -39,10 +43,10 @@ import {
   Download,
   Monitor,
   Bell,
-  Database
-} from 'lucide-react';
+  Database,
+} from "lucide-react";
 
-import { getCookieInfo } from '../common/utils/cookieExplainers';
+import { getCookieInfo } from "../common/utils/cookieExplainers";
 
 // Custom Map center update helper
 function MapController({ center }) {
@@ -55,17 +59,24 @@ function MapController({ center }) {
   return null;
 }
 
-import { useSettings } from '../common/hooks/useSettings';
+import { useSettings } from "../common/hooks/useSettings";
 
-import netpinLogo from '../../icons/gemini-svg.svg';
+import AnimatedLogo from "../common/components/AnimatedLogo";
+import netpinLogo from "../../icons/gemini-svg.svg";
 
 export default function Dashboard() {
-  const { loading, error, data, triggerAnalysis, removeCookies } = useServerData();
-  const [viewMode, setViewMode] = useState('map'); // 'map' or 'globe'
+  const { loading, error, data, triggerAnalysis, removeCookies } =
+    useServerData();
+  const [viewMode, setViewMode] = useState("map"); // 'map' or 'globe'
   const [darkMode, setDarkMode] = useState(false);
   const [infoCookie, setInfoCookie] = useState(null);
-  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const initialTab = urlParams ? (urlParams.get('tab') || 'overview') : 'overview';
+  const urlParams =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : null;
+  const initialTab = urlParams
+    ? urlParams.get("tab") || "overview"
+    : "overview";
   const [activeTab, setActiveTab] = useState(initialTab); // 'overview', 'history', 'lists', 'settings', 'about'
 
   // Settings State from persistent hook
@@ -78,19 +89,23 @@ export default function Dashboard() {
   // Load history from storage on mount
   useEffect(() => {
     const loadHistory = () => {
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        chrome.storage.local.get(['scanHistory'], (result) => {
+      if (
+        typeof chrome !== "undefined" &&
+        chrome.storage &&
+        chrome.storage.local
+      ) {
+        chrome.storage.local.get(["scanHistory"], (result) => {
           if (result.scanHistory) {
             setScanHistory(result.scanHistory);
           }
         });
       } else {
-        const local = localStorage.getItem('scanHistory');
+        const local = localStorage.getItem("scanHistory");
         if (local) {
           try {
             setScanHistory(JSON.parse(local));
           } catch (e) {
-            console.error('Failed to parse scan history from localStorage:', e);
+            console.error("Failed to parse scan history from localStorage:", e);
           }
         }
       }
@@ -103,36 +118,49 @@ export default function Dashboard() {
     if (data && data.domain) {
       const newItem = {
         domain: data.domain,
-        ip: data.ip || 'Unknown IP',
-        country: data.serverLocation?.country || 'Unknown Country',
-        city: data.serverLocation?.city || 'Unknown City',
+        ip: data.ip || "Unknown IP",
+        country: data.serverLocation?.country || "Unknown Country",
+        city: data.serverLocation?.city || "Unknown City",
         latency: data.latency || 0,
-        provider: data.hostingProvider || 'Unknown Provider',
-        date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })
+        provider: data.hostingProvider || "Unknown Provider",
+        date:
+          new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }) +
+          ", " +
+          new Date().toLocaleDateString([], { month: "short", day: "numeric" }),
       };
 
-      setScanHistory(prev => {
+      setScanHistory((prev) => {
         // Remove existing scan for the same domain so the new one goes to the top
-        const filtered = prev.filter(item => item.domain !== newItem.domain);
+        const filtered = prev.filter((item) => item.domain !== newItem.domain);
         const updated = [newItem, ...filtered].slice(0, 50);
 
-        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        if (
+          typeof chrome !== "undefined" &&
+          chrome.storage &&
+          chrome.storage.local
+        ) {
           chrome.storage.local.set({ scanHistory: updated });
         } else {
-          localStorage.setItem('scanHistory', JSON.stringify(updated));
+          localStorage.setItem("scanHistory", JSON.stringify(updated));
         }
         return updated;
       });
     }
   }, [data]);
 
-
   const handleClearHistory = () => {
     setScanHistory([]);
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+    if (
+      typeof chrome !== "undefined" &&
+      chrome.storage &&
+      chrome.storage.local
+    ) {
       chrome.storage.local.set({ scanHistory: [] });
     } else {
-      localStorage.setItem('scanHistory', JSON.stringify([]));
+      localStorage.setItem("scanHistory", JSON.stringify([]));
     }
     setClearedFeedback(true);
     setTimeout(() => setClearedFeedback(false), 2000);
@@ -140,12 +168,12 @@ export default function Dashboard() {
 
   // Custom marker icon creation with inline CSS
   const getMarkerIcon = (colorClass) => {
-    const isPurple = colorClass === 'purple';
-    const bgClass = isPurple ? 'bg-purple-600' : 'bg-blue-600';
-    const pulseClass = isPurple ? 'bg-purple-500/20' : 'bg-blue-500/20';
+    const isPurple = colorClass === "purple";
+    const bgClass = isPurple ? "bg-purple-600" : "bg-blue-600";
+    const pulseClass = isPurple ? "bg-purple-500/20" : "bg-blue-500/20";
 
     return L.divIcon({
-      className: 'custom-leaflet-marker',
+      className: "custom-leaflet-marker",
       html: `
         <div class="relative flex items-center justify-center">
           <div class="w-7 h-7 rounded-full ${pulseClass} absolute animate-ping"></div>
@@ -155,7 +183,7 @@ export default function Dashboard() {
         </div>
       `,
       iconSize: [28, 28],
-      iconAnchor: [14, 14]
+      iconAnchor: [14, 14],
     });
   };
 
@@ -164,7 +192,7 @@ export default function Dashboard() {
     if (!start || !end) return [];
     const points = [];
     const steps = 40;
-    
+
     const lat1 = start[0];
     const lon1 = start[1];
     const lat2 = end[0];
@@ -178,10 +206,10 @@ export default function Dashboard() {
       // Arc perpendicular height offset
       const offset = Math.sin(t * Math.PI) * 1.8;
       const angle = Math.atan2(lat2 - lat1, lon2 - lon1);
-      
+
       const curvedLat = lat + Math.cos(angle + Math.PI / 2) * offset;
       const curvedLon = lon + Math.sin(angle + Math.PI / 2) * offset;
-      
+
       points.push([curvedLat, curvedLon]);
     }
     return points;
@@ -189,42 +217,59 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className={`w-full min-h-screen ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col items-center justify-center p-8 `}>
-        <div className="relative flex items-center justify-center mb-6">
-          <div className="w-20 h-20 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-          <img src={netpinLogo} className="absolute w-8 h-8 animate-pulse" alt="NetPin Loading" />
+      <div
+        className={`w-full min-h-screen ${darkMode ? "bg-[#0a0e1a] text-slate-200" : "bg-slate-50 text-slate-800"} flex flex-col items-center justify-center p-8 `}
+      >
+        <div className="flex items-center justify-center mb-6">
+          <AnimatedLogo size="xl" darkMode={darkMode} className="animate-pulse" />
         </div>
         <h2 className="font-bold text-2xl tracking-wider">NetPin</h2>
-        <p className="text-slate-400 mt-2 animate-pulse">Gathering routing routes & green certifications...</p>
+        <p className="text-slate-400 mt-2 animate-pulse">
+          Gathering routing routes & green certifications...
+        </p>
       </div>
     );
   }
 
   if (error) {
-    const isLocationError = error.includes('LOCATION_DENIED');
-    const isTrackerError = error.includes('TRACKER_BLOCKED');
-    const displayError = isLocationError ? error.replace('LOCATION_DENIED: ', '') : (isTrackerError ? error.replace('TRACKER_BLOCKED: ', '') : error);
-    
+    const isLocationError = error.includes("LOCATION_DENIED");
+    const isTrackerError = error.includes("TRACKER_BLOCKED");
+    const displayError = isLocationError
+      ? error.replace("LOCATION_DENIED: ", "")
+      : isTrackerError
+        ? error.replace("TRACKER_BLOCKED: ", "")
+        : error;
+
     return (
-      <div className={`w-full min-h-screen ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col items-center justify-center p-8 text-center `}>
-        <div className={`w-20 h-20 rounded-[2rem] ${isLocationError ? 'bg-orange-500/10 border-orange-500/20 shadow-[0_0_40px_rgba(249,115,22,0.1)]' : (isTrackerError ? 'bg-rose-500/10 border-rose-500/20 shadow-[0_0_40px_rgba(243,64,64,0.1)]' : 'bg-red-500/10 border-red-500/20 shadow-[0_0_40px_rgba(239,68,68,0.1)]')} flex items-center justify-center border mb-6`}>
+      <div
+        className={`w-full min-h-screen ${darkMode ? "bg-[#0a0e1a] text-slate-200" : "bg-slate-50 text-slate-800"} flex flex-col items-center justify-center p-8 text-center `}
+      >
+        <div
+          className={`w-20 h-20 rounded-[2rem] ${isLocationError ? "bg-orange-500/10 border-orange-500/20 shadow-[0_0_40px_rgba(249,115,22,0.1)]" : isTrackerError ? "bg-rose-500/10 border-rose-500/20 shadow-[0_0_40px_rgba(243,64,64,0.1)]" : "bg-red-500/10 border-red-500/20 shadow-[0_0_40px_rgba(239,68,68,0.1)]"} flex items-center justify-center border mb-6`}
+        >
           {isLocationError ? (
             <MapPin className="w-10 h-10 text-orange-400" />
           ) : isTrackerError ? (
             <Shield className="w-10 h-10 text-rose-500" />
           ) : (
-            <img src={netpinLogo} className="w-10 h-10 opacity-60 grayscale" alt="NetPin Error" />
+            <AnimatedLogo size="lg" darkMode={darkMode} className="opacity-60 grayscale" />
           )}
         </div>
-        <h2 className={`font-bold text-2xl ${isLocationError ? 'text-orange-400' : (isTrackerError ? 'text-rose-500' : 'text-red-400')}`}>
-          {isLocationError ? 'Location Access Required' : (isTrackerError ? 'Connection Blocked by NetPin' : 'Analysis Error')}
+        <h2
+          className={`font-bold text-2xl ${isLocationError ? "text-orange-400" : isTrackerError ? "text-rose-500" : "text-red-400"}`}
+        >
+          {isLocationError
+            ? "Location Access Required"
+            : isTrackerError
+              ? "Connection Blocked by NetPin"
+              : "Analysis Error"}
         </h2>
         <p className="text-slate-400 mt-2 max-w-md">{displayError}</p>
-        <button 
-          onClick={() => window.location.reload()} 
+        <button
+          onClick={() => window.location.reload()}
           className="mt-8 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg flex items-center gap-2"
         >
-          {isLocationError ? 'Grant Permission & Retry' : 'Retry Audit'}
+          {isLocationError ? "Grant Permission & Retry" : "Retry Audit"}
         </button>
       </div>
     );
@@ -232,14 +277,18 @@ export default function Dashboard() {
 
   if (!loading && !error && !data) {
     return (
-      <div className={`w-full min-h-screen ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col items-center justify-center p-8 text-center `}>
-        <div className="w-20 h-20 rounded-[2rem] bg-blue-600/10 flex items-center justify-center border border-blue-500/20 mb-6 shadow-[0_0_40px_rgba(59,130,246,0.15)]">
-          <img src={netpinLogo} className="w-10 h-10" alt="NetPin Ready" />
+      <div
+        className={`w-full min-h-screen ${darkMode ? "bg-[#0a0e1a] text-slate-200" : "bg-slate-50 text-slate-800"} flex flex-col items-center justify-center p-8 text-center `}
+      >
+        <div className="mb-6 flex items-center justify-center">
+          <AnimatedLogo size="xl" darkMode={darkMode} />
         </div>
         <h2 className="font-bold text-3xl mb-2">NetPin Ready</h2>
-        <p className="text-slate-400 mt-2 max-w-md text-lg">Auto-analyze is currently disabled in your settings.</p>
-        <button 
-          onClick={triggerAnalysis} 
+        <p className="text-slate-400 mt-2 max-w-md text-lg">
+          Auto-analyze is currently disabled in your settings.
+        </p>
+        <button
+          onClick={triggerAnalysis}
           className="mt-8 px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 active:scale-[0.98] text-lg"
         >
           Start Analysis
@@ -251,25 +300,27 @@ export default function Dashboard() {
   // Export Report Functionality
   const exportReport = () => {
     if (!data) return;
-    
+
     let blob;
     let filename;
-    
-    if (settings.exportFormat === 'csv') {
+
+    if (settings.exportFormat === "csv") {
       const csvContent = `Domain,IP,Country,City,Trackers\n${data.domain},${data.serverLocation.ip},${data.serverLocation.country},${data.serverLocation.city},${data.trackers.length}`;
       blob = new Blob([csvContent], { type: "text/csv" });
       filename = `netpin-report-${data.domain}.csv`;
-    } else if (settings.exportFormat === 'txt') {
-      const txtContent = `NETPIN REPORT FOR ${data.domain}\n====================================\nServer IP: ${data.serverLocation.ip}\nLocation: ${data.serverLocation.city}, ${data.serverLocation.country}\nTrackers: ${data.trackers.length}\nRegistrar: ${data.whois?.registrar || 'Unknown'}`;
+    } else if (settings.exportFormat === "txt") {
+      const txtContent = `NETPIN REPORT FOR ${data.domain}\n====================================\nServer IP: ${data.serverLocation.ip}\nLocation: ${data.serverLocation.city}, ${data.serverLocation.country}\nTrackers: ${data.trackers.length}\nRegistrar: ${data.whois?.registrar || "Unknown"}`;
       blob = new Blob([txtContent], { type: "text/plain" });
       filename = `netpin-report-${data.domain}.txt`;
     } else {
       const reportData = {
         timestamp: new Date().toISOString(),
         netpinVersion: "1.0",
-        analysis: data
+        analysis: data,
       };
-      blob = new Blob([JSON.stringify(reportData, null, 2)], { type: "application/json" });
+      blob = new Blob([JSON.stringify(reportData, null, 2)], {
+        type: "application/json",
+      });
       filename = `netpin-report-${data.domain}.json`;
     }
 
@@ -289,35 +340,49 @@ export default function Dashboard() {
   const polylineCurve = getCurvePoints(youPosition, serverPosition);
 
   const faviconUrl = `https://icons.duckduckgo.com/ip3/${data.domain}.ico`;
-  const flagUrl = data.serverLocation.countryCode 
+  const flagUrl = data.serverLocation.countryCode
     ? `https://flagcdn.com/w40/${data.serverLocation.countryCode.toLowerCase()}.png`
     : null;
 
   return (
-    <div className={`w-full min-h-screen ${darkMode ? 'bg-[#0a0e1a] text-slate-200' : 'bg-slate-50 text-slate-800'} flex flex-col font-sans `}>
+    <div
+      className={`w-full min-h-screen ${darkMode ? "bg-[#0a0e1a] text-slate-200" : "bg-slate-50 text-slate-800"} flex flex-col font-sans `}
+    >
       {/* Header */}
-      <header className={`border-b ${darkMode ? 'bg-[#0a0e1a]/80 border-slate-900' : 'bg-white/90 border-slate-200'} sticky top-0 z-50 backdrop-blur-md px-6 py-4 flex items-center justify-between`}>
-        <div className="flex items-center gap-2 px-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center border border-blue-500/30">
-            <img src={netpinLogo} className="w-5 h-5" alt="NetPin" />
-          </div>
-          <h2 className="font-bold text-2xl tracking-wider bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">NetPin</h2>
+      <header
+        className={`border-b ${darkMode ? "bg-[#0a0e1a]/80 border-slate-900" : "bg-white/90 border-slate-200"} sticky top-0 z-50 backdrop-blur-md px-6 py-4 flex items-center justify-between`}
+      >
+        <div className="flex items-center gap-3 px-2">
+          <AnimatedLogo size="sm" darkMode={darkMode} />
+          <h2 className="font-bold text-2xl tracking-wider bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+            NetPin
+          </h2>
         </div>
 
         {/* Global Tab Banner for context site */}
-        <div className={`hidden md:flex items-center gap-4 px-4 py-1.5 rounded-full border ${darkMode ? 'bg-[#0c1220]/60 border-slate-900' : 'bg-slate-100 border-slate-200'}`}>
-          <img src={faviconUrl} className="w-4 h-4 rounded-sm" alt={data.domain} />
-          <span className="text-sm font-semibold tracking-tight">{data.domain}</span>
-          <span className={`w-2 h-2 rounded-full ${data.green ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
+        <div
+          className={`hidden md:flex items-center gap-4 px-4 py-1.5 rounded-full border ${darkMode ? "bg-[#0c1220]/60 border-slate-900" : "bg-slate-100 border-slate-200"}`}
+        >
+          <img
+            src={faviconUrl}
+            className="w-4 h-4 rounded-sm"
+            alt={data.domain}
+          />
+          <span className="text-sm font-semibold tracking-tight">
+            {data.domain}
+          </span>
+          <span
+            className={`w-2 h-2 rounded-full ${data.green ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`}
+          ></span>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             onClick={triggerAnalysis}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold shadow-sm cursor-pointer transition-all active:scale-[0.98] ${
-              darkMode 
-                ? 'border-slate-800 hover:bg-slate-900/60 text-slate-350 hover:text-white' 
-                : 'border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-800'
+              darkMode
+                ? "border-slate-800 hover:bg-slate-900/60 text-slate-350 hover:text-white"
+                : "border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-800"
             }`}
             title="Re-run connection analysis"
           >
@@ -327,98 +392,139 @@ export default function Dashboard() {
           <button
             onClick={exportReport}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold shadow-sm cursor-pointer transition-all active:scale-[0.98] ${
-              darkMode 
-                ? 'border-indigo-800 bg-indigo-900/40 hover:bg-indigo-900/60 text-indigo-300 hover:text-white' 
-                : 'border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800'
+              darkMode
+                ? "border-indigo-800 bg-indigo-900/40 hover:bg-indigo-900/60 text-indigo-300 hover:text-white"
+                : "border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800"
             }`}
             title="Download JSON Report"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export</span>
           </button>
-          <button 
+          <button
             onClick={() => setDarkMode(!darkMode)}
-            className={`p-2 rounded-xl border ${darkMode ? 'border-slate-800 text-yellow-400 hover:bg-slate-900' : 'border-slate-200 text-indigo-600 hover:bg-slate-100'} `}
+            className={`p-2 rounded-xl border ${darkMode ? "border-slate-800 text-yellow-400 hover:bg-slate-900" : "border-slate-200 text-indigo-600 hover:bg-slate-100"} `}
           >
-            {darkMode ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
+            {darkMode ? (
+              <Sun className="w-4.5 h-4.5" />
+            ) : (
+              <Moon className="w-4.5 h-4.5" />
+            )}
           </button>
         </div>
       </header>
 
       {/* Main Page Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 pb-8 animate-fade-in">
-        
         {/* Dynamic Inner Tab Router */}
-        
+
         {/* TAB 1: OVERVIEW */}
-        {activeTab === 'overview' && (
+        {activeTab === "overview" && (
           <>
             {/* Left Column (Details & Map) */}
             <div className="lg:col-span-8 flex flex-col gap-6 min-w-0">
-              
               {/* Target Website Card */}
-              <div className={`border rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
+              <div
+                className={`border rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl ${darkMode ? "bg-[#0f172a] border-slate-900" : "bg-white border-slate-200"}`}
+              >
                 <div className="flex items-center gap-4">
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center p-2.5 shadow-md ${darkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
-                    <img 
-                      src={faviconUrl} 
-                      alt={data.domain} 
+                  <div
+                    className={`w-14 h-14 rounded-xl flex items-center justify-center p-2.5 shadow-md ${darkMode ? "bg-slate-800" : "bg-slate-100"}`}
+                  >
+                    <img
+                      src={faviconUrl}
+                      alt={data.domain}
                       className="w-full h-full object-contain rounded"
-                      onError={(e) => { e.target.src = 'https://icons.duckduckgo.com/ip3/example.com.ico'; }}
+                      onError={(e) => {
+                        e.target.src =
+                          "https://icons.duckduckgo.com/ip3/example.com.ico";
+                      }}
                     />
                   </div>
                   <div>
                     <div className="flex items-center gap-2.5">
-                      <h2 className="text-xl font-bold tracking-tight">{data.domain}</h2>
+                      <h2 className="text-xl font-bold tracking-tight">
+                        {data.domain}
+                      </h2>
                       <span className="text-xs px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold">
                         https://www.{data.domain}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 mt-1.5">
                       <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                      <span className="text-xs text-emerald-400 font-semibold">Connection Secure (SSL Active)</span>
+                      <span className="text-xs text-emerald-400 font-semibold">
+                        Connection Secure (SSL Active)
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-6 md:gap-8 border-t md:border-t-0 md:border-l border-slate-800/20 dark:border-slate-800/60 pt-4 md:pt-0 md:pl-8 min-w-0">
                   <div className="min-w-0 max-w-[160px]">
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">IP Address</span>
-                    <p className="text-sm font-extrabold mt-0.5 truncate" title={data.ip}>{data.ip}</p>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
+                      IP Address
+                    </span>
+                    <p
+                      className="text-sm font-extrabold mt-0.5 truncate"
+                      title={data.ip}
+                    >
+                      {data.ip}
+                    </p>
                   </div>
                   <div className="min-w-0 max-w-[140px]">
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">ISP / ASN</span>
-                    <p className="text-sm font-extrabold mt-0.5 truncate" title={data.isp}>{data.hostingProvider}</p>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
+                      ISP / ASN
+                    </span>
+                    <p
+                      className="text-sm font-extrabold mt-0.5 truncate"
+                      title={data.isp}
+                    >
+                      {data.hostingProvider}
+                    </p>
                   </div>
                   <div className="min-w-0">
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Server Location</span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
+                      Server Location
+                    </span>
                     <p className="text-sm font-extrabold mt-0.5 flex items-center gap-1.5">
-                      {flagUrl && <img src={flagUrl} className="w-4.5 h-3 object-cover rounded-sm shrink-0" alt="Flag" />}
-                      <span className="truncate">{data.serverLocation.city}</span>
+                      {flagUrl && (
+                        <img
+                          src={flagUrl}
+                          className="w-4.5 h-3 object-cover rounded-sm shrink-0"
+                          alt="Flag"
+                        />
+                      )}
+                      <span className="truncate">
+                        {data.serverLocation.city}
+                      </span>
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* Map & Globe Card */}
-              <div className={`border rounded-2xl p-5 flex flex-col shadow-xl relative overflow-hidden h-[420px] ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
+              <div
+                className={`border rounded-2xl p-5 flex flex-col shadow-xl relative overflow-hidden h-[420px] ${darkMode ? "bg-[#0f172a] border-slate-900" : "bg-white border-slate-200"}`}
+              >
                 <div className="flex items-center justify-between mb-4 z-10">
                   <h3 className="font-bold text-base tracking-wide flex items-center gap-2">
                     <Compass className="w-5 h-5 text-blue-500" />
                     Server Route Geolocation
                   </h3>
-                  
+
                   {/* Map/Globe Toggle Tabs */}
-                  <div className={`flex rounded-lg p-0.5 border ${darkMode ? 'bg-[#0c1220] border-slate-800' : 'bg-slate-100 border-slate-200'}`}>
-                    <button 
-                      onClick={() => setViewMode('map')}
-                      className={`px-3 py-1 text-xs font-bold rounded-md ${viewMode === 'map' ? (darkMode ? 'bg-blue-600 text-white' : 'bg-white text-slate-800 shadow') : 'text-slate-500'}`}
+                  <div
+                    className={`flex rounded-lg p-0.5 border ${darkMode ? "bg-[#0c1220] border-slate-800" : "bg-slate-100 border-slate-200"}`}
+                  >
+                    <button
+                      onClick={() => setViewMode("map")}
+                      className={`px-3 py-1 text-xs font-bold rounded-md ${viewMode === "map" ? (darkMode ? "bg-blue-600 text-white" : "bg-white text-slate-800 shadow") : "text-slate-500"}`}
                     >
                       Map
                     </button>
-                    <button 
-                      onClick={() => setViewMode('globe')}
-                      className={`px-3 py-1 text-xs font-bold rounded-md ${viewMode === 'globe' ? (darkMode ? 'bg-blue-600 text-white' : 'bg-white text-slate-800 shadow') : 'text-slate-500'}`}
+                    <button
+                      onClick={() => setViewMode("globe")}
+                      className={`px-3 py-1 text-xs font-bold rounded-md ${viewMode === "globe" ? (darkMode ? "bg-blue-600 text-white" : "bg-white text-slate-800 shadow") : "text-slate-500"}`}
                     >
                       Globe
                     </button>
@@ -426,36 +532,47 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex-1 w-full rounded-xl overflow-hidden relative border border-slate-900/30">
-                  {viewMode === 'map' ? (
-                    <MapContainer 
-                      key={darkMode ? 'dark-map' : 'light-map'}
-                      center={serverPosition} 
-                      zoom={4} 
+                  {viewMode === "map" ? (
+                    <MapContainer
+                      key={darkMode ? "dark-map" : "light-map"}
+                      center={serverPosition}
+                      zoom={4}
                       scrollWheelZoom={false}
-                      className={`w-full h-full z-0 ${darkMode ? 'dark-map' : ''}`}
+                      className={`w-full h-full z-0 ${darkMode ? "dark-map" : ""}`}
                     >
                       <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                       />
                       <MapController center={serverPosition} />
-                      
-                      {/* You Location pin */}
-                      <Marker position={youPosition} icon={getMarkerIcon('blue')}>
+
+                      {/* ISP Location pin */}
+                      <Marker
+                        position={youPosition}
+                        icon={getMarkerIcon("blue")}
+                      >
                         <Popup>
                           <div className="text-slate-100 text-xs font-bold">
-                            <span className="text-blue-400">You</span> <br />
-                            {data.userLocation.city}, {data.userLocation.country}
+                            <span className="text-blue-400">ISP Node</span> <br />
+                            {data.userLocation.city},{" "}
+                            {data.userLocation.country}
                           </div>
                         </Popup>
                       </Marker>
 
                       {/* Server Location pin */}
-                      <Marker position={serverPosition} icon={getMarkerIcon('purple')}>
+                      <Marker
+                        position={serverPosition}
+                        icon={getMarkerIcon("purple")}
+                      >
                         <Popup>
                           <div className="text-slate-100 text-xs font-bold">
-                            <span className="text-purple-400">Server ({data.domain})</span> <br />
-                            {data.serverLocation.city}, {data.serverLocation.country} <br />
+                            <span className="text-purple-400">
+                              Server ({data.domain})
+                            </span>{" "}
+                            <br />
+                            {data.serverLocation.city},{" "}
+                            {data.serverLocation.country} <br />
                             IP: {data.ip}
                           </div>
                         </Popup>
@@ -463,10 +580,10 @@ export default function Dashboard() {
 
                       {/* Curved Route Link */}
                       {polylineCurve.length > 0 && (
-                        <Polyline 
-                          positions={polylineCurve} 
-                          color="#3b82f6" 
-                          weight={3.5} 
+                        <Polyline
+                          positions={polylineCurve}
+                          color="#3b82f6"
+                          weight={3.5}
                           dashArray="5, 8"
                           opacity={0.8}
                         />
@@ -476,7 +593,7 @@ export default function Dashboard() {
                     /* High-tech Globe Mockup View using premium SVG & CSS rotates */
                     <div className="w-full h-full bg-[#0a0e1a] flex flex-col items-center justify-center p-6 select-none relative overflow-hidden">
                       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:24px_24px] opacity-5"></div>
-                      
+
                       {/* Rotating Globe circle */}
                       <div className="relative w-56 h-56 rounded-full border border-blue-500/20 flex items-center justify-center shadow-[inset_0_0_30px_rgba(59,130,246,0.15)] animate-[spin-slow_40s_linear_infinite]">
                         {/* Grid lines representing latitude lines */}
@@ -484,28 +601,35 @@ export default function Dashboard() {
                         <div className="absolute w-[1px] h-full bg-blue-500/10"></div>
                         <div className="absolute inset-4 rounded-full border border-dashed border-blue-500/10"></div>
                         <div className="absolute inset-12 rounded-full border border-dotted border-blue-500/10"></div>
-                        
+
                         {/* Global Nodes */}
                         <div className="absolute top-[25%] left-[20%] w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_#3b82f6]"></div>
                         <div className="absolute top-[50%] right-[15%] w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_12px_#a855f7]"></div>
                         <div className="absolute bottom-[30%] left-[45%] w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></div>
-                        
+
                         {/* Connection Arc on globe */}
-                        <svg className="absolute w-full h-full top-0 left-0" viewBox="0 0 200 200">
-                          <path 
-                            d="M 50 60 Q 100 20 150 100" 
-                            fill="none" 
-                            stroke="#3b82f6" 
-                            strokeWidth="1.5" 
-                            strokeDasharray="4,4" 
+                        <svg
+                          className="absolute w-full h-full top-0 left-0"
+                          viewBox="0 0 200 200"
+                        >
+                          <path
+                            d="M 50 60 Q 100 20 150 100"
+                            fill="none"
+                            stroke="#3b82f6"
+                            strokeWidth="1.5"
+                            strokeDasharray="4,4"
                             className="animate-dash"
                           />
                         </svg>
                       </div>
-                      
+
                       <div className="absolute bottom-4 text-center">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Globe View Simulation</p>
-                        <p className="text-[10px] text-blue-400 mt-1">Spinning global routing nodes</p>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                          Globe View Simulation
+                        </p>
+                        <p className="text-[10px] text-blue-400 mt-1">
+                          Spinning global routing nodes
+                        </p>
                       </div>
                     </div>
                   )}
@@ -514,27 +638,36 @@ export default function Dashboard() {
 
               {/* Consolidated Metrics Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                
                 {/* Distance */}
-                <div className={`border rounded-2xl p-4.5 flex items-center gap-4 shadow-lg ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
+                <div
+                  className={`border rounded-2xl p-4.5 flex items-center gap-4 shadow-lg ${darkMode ? "bg-[#0f172a] border-slate-900" : "bg-white border-slate-200"}`}
+                >
                   <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Distance</span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
+                      Distance
+                    </span>
                     <p className="text-base font-extrabold mt-0.5">
-                      {data.distance ? `${data.distance.toLocaleString()} km` : 'Pending'}
+                      {data.distance
+                        ? `${data.distance.toLocaleString()} km`
+                        : "Pending"}
                     </p>
                   </div>
                 </div>
 
                 {/* Measured Latency */}
-                <div className={`border rounded-2xl p-4.5 flex items-center gap-4 shadow-lg ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
+                <div
+                  className={`border rounded-2xl p-4.5 flex items-center gap-4 shadow-lg ${darkMode ? "bg-[#0f172a] border-slate-900" : "bg-white border-slate-200"}`}
+                >
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
                     <TrendingUp className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Latency</span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
+                      Latency
+                    </span>
                     <p className="text-base font-extrabold mt-0.5 flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                       {data.latency} ms
@@ -543,31 +676,44 @@ export default function Dashboard() {
                 </div>
 
                 {/* Data Travel Time */}
-                <div className={`border rounded-2xl p-4.5 flex items-center gap-4 shadow-lg ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
+                <div
+                  className={`border rounded-2xl p-4.5 flex items-center gap-4 shadow-lg ${darkMode ? "bg-[#0f172a] border-slate-900" : "bg-white border-slate-200"}`}
+                >
                   <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Travel Time</span>
-                    <p className="text-base font-extrabold mt-0.5">{data.dataTravelTime}</p>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
+                      Travel Time
+                    </span>
+                    <p className="text-base font-extrabold mt-0.5">
+                      {data.dataTravelTime}
+                    </p>
                   </div>
                 </div>
 
                 {/* Hops */}
-                <div className={`border rounded-2xl p-4.5 flex items-center gap-4 shadow-lg ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
+                <div
+                  className={`border rounded-2xl p-4.5 flex items-center gap-4 shadow-lg ${darkMode ? "bg-[#0f172a] border-slate-900" : "bg-white border-slate-200"}`}
+                >
                   <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
                     <Cpu className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Network Hops</span>
-                    <p className="text-base font-extrabold mt-0.5">{data.hops} Hops</p>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
+                      Network Hops
+                    </span>
+                    <p className="text-base font-extrabold mt-0.5">
+                      {data.hops} Hops
+                    </p>
                   </div>
                 </div>
-
               </div>
 
               {/* Data Journey Connection Card */}
-              <div className={`border rounded-2xl p-5 shadow-xl ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
+              <div
+                className={`border rounded-2xl p-5 shadow-xl ${darkMode ? "bg-[#0f172a] border-slate-900" : "bg-white border-slate-200"}`}
+              >
                 <h3 className="font-bold text-base tracking-wide flex items-center gap-2 mb-4 border-b border-slate-800/15 dark:border-slate-800/50 pb-3">
                   <Cpu className="w-5 h-5 text-indigo-500" />
                   Connection Data Journey
@@ -582,20 +728,54 @@ export default function Dashboard() {
                     const isLast = i === data.journey.length - 1;
                     const isFirst = i === 0;
 
-                    let nodeColorClass = 'bg-blue-600 border-blue-500/30';
-                    if (isLast) nodeColorClass = 'bg-purple-600 border-purple-500/30';
-                    else if (!isFirst && !isLast) nodeColorClass = 'bg-indigo-600 border-indigo-500/30';
+                    let nodeColorClass = "bg-blue-600 border-blue-500/30";
+                    if (isLast)
+                      nodeColorClass = "bg-purple-600 border-purple-500/30";
+                    else if (!isFirst && !isLast)
+                      nodeColorClass = "bg-indigo-600 border-indigo-500/30";
+
+                    const getJourneyExplanation = (name) => {
+                      switch (name.toUpperCase()) {
+                        case "YOU": return "Your device initiating the connection.";
+                        case "ISP": return "Your local ISP routing the request.";
+                        case "NETWORK": return "Regional network infrastructure.";
+                        case "TRANSIT": return "International cables & transit nodes.";
+                        case "SERVER": return "The destination data center.";
+                        default: return "Intermediate network routing hop.";
+                      }
+                    };
 
                     return (
-                      <div key={i} className="relative flex items-start gap-4 text-xs">
-                        {/* Node circle */}
-                        <div className={`absolute -left-[20px] w-3 h-3 rounded-full ${nodeColorClass} border flex items-center justify-center z-10`}>
-                          <div className="w-1 h-1 rounded-full bg-white"></div>
-                        </div>
+                      <div
+                        key={i}
+                        className="relative flex items-start justify-between gap-4 text-xs w-full"
+                      >
+                        {/* Left Side: Location Data */}
+                        <div className="flex items-start gap-4 min-w-[140px]">
+                          {/* Node circle */}
+                          <div
+                            className={`absolute -left-[20px] w-3 h-3 rounded-full ${nodeColorClass} border flex items-center justify-center z-10`}
+                          >
+                            <div className="w-1 h-1 rounded-full bg-white"></div>
+                          </div>
 
-                        <div>
-                          <div className={`font-bold uppercase tracking-wide text-[10px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{node.name}</div>
-                          <div className={`text-xs font-semibold mt-0.5 ${darkMode ? 'text-slate-100' : 'text-slate-800'}`}>{node.location}</div>
+                          <div>
+                            <div
+                              className={`font-bold uppercase tracking-wide text-[10px] ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+                            >
+                              {node.name}
+                            </div>
+                            <div
+                              className={`text-xs font-semibold mt-0.5 ${darkMode ? "text-slate-100" : "text-slate-800"}`}
+                            >
+                              {node.location}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Right Side: Step Explanation */}
+                        <div className={`text-[11px] leading-snug mt-0.5 text-right w-[180px] sm:w-[220px] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                          {getJourneyExplanation(node.name)}
                         </div>
                       </div>
                     );
@@ -604,52 +784,91 @@ export default function Dashboard() {
               </div>
 
               {/* Domain Intelligence Card */}
-              <div className={`border rounded-2xl p-5 flex flex-col gap-4 shadow-xl mb-6 ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <Globe className={`w-5 h-5 ${darkMode ? 'text-indigo-400' : 'text-indigo-500'}`} />
-                  <h3 className="font-bold text-sm">Domain Intelligence & WHOIS</h3>
+              <div
+                className={`border rounded-2xl p-5 flex flex-col gap-4 shadow-xl mb-6 ${darkMode ? "bg-[#0f172a] border-slate-900" : "bg-white border-slate-200"}`}
+              >
+                <div className="flex items-center gap-2 mb-1 w-full relative">
+                  <Globe
+                    className={`w-5 h-5 ${darkMode ? "text-indigo-400" : "text-indigo-500"}`}
+                  />
+                  <h3 className="font-bold text-sm">
+                    Domain Intelligence & WHOIS
+                  </h3>
+                  {((data.whois?.registrar && (data.whois.registrar.includes("Hidden") || data.whois.registrar.includes("Privacy") || data.whois.registrar.includes("Redacted") || data.whois.registrar.includes("Protected") || data.whois.registrar === "Unknown")) || (data.whois?.registered && (data.whois.registered.includes("Privacy") || data.whois.registered.includes("Protected") || data.whois.registered.includes("Redacted") || data.whois.registered.includes("Hidden") || data.whois.registered === "Unknown"))) && (
+                    <div className="relative flex items-center ml-auto group">
+                      <Info className={`w-4 h-4 cursor-help ${darkMode ? "text-slate-400 hover:text-slate-300" : "text-slate-500 hover:text-slate-700"}`} />
+                      <div className={`absolute bottom-full right-0 mb-2 w-64 p-2.5 rounded-lg text-[10px] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 ${darkMode ? "bg-slate-800 text-slate-200 border border-slate-700" : "bg-white text-slate-700 border border-slate-200"}`}>
+                        Domain owners often use privacy protection services to hide personal details and registration dates from public WHOIS databases to prevent spam and identity theft.
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className={`p-3 rounded-xl border ${darkMode ? 'bg-slate-800/30 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
-                    <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Registrar</span>
-                    <span className="text-xs font-semibold">{data.whois?.registrar || 'Unknown'}</span>
+                  <div
+                    className={`p-3 rounded-xl border ${darkMode ? "bg-slate-800/30 border-slate-800" : "bg-slate-50 border-slate-100"}`}
+                  >
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">
+                      Registrar
+                    </span>
+                    <span className="text-xs font-semibold">
+                      {data.whois?.registrar || "Unknown"}
+                    </span>
                   </div>
-                  <div className={`p-3 rounded-xl border ${darkMode ? 'bg-slate-800/30 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
-                    <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Registration Date</span>
-                    <span className="text-xs font-semibold">{data.whois?.registered || 'Unknown'}</span>
+                  <div
+                    className={`p-3 rounded-xl border ${darkMode ? "bg-slate-800/30 border-slate-800" : "bg-slate-50 border-slate-100"}`}
+                  >
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">
+                      Registration Date
+                    </span>
+                    <span className="text-xs font-semibold">
+                      {data.whois?.registered || "Unknown"}
+                    </span>
                   </div>
                 </div>
 
-                <div className={`p-3 rounded-xl border ${darkMode ? 'bg-slate-800/30 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">DNS Records (A & AAAA)</span>
+                <div
+                  className={`p-3 rounded-xl border ${darkMode ? "bg-slate-800/30 border-slate-800" : "bg-slate-50 border-slate-100"}`}
+                >
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">
+                    DNS Records (A & AAAA)
+                  </span>
                   <div className="flex flex-wrap gap-2">
                     {data.dns && data.dns.length > 0 ? (
                       data.dns
-                        .filter(record => settings.showIpv6 || record.type !== 'IPv6')
+                        .filter(
+                          (record) =>
+                            settings.showIpv6 || record.type !== "IPv6",
+                        )
                         .map((record, i) => (
-                        <div key={i} className={`flex items-center gap-1.5 text-xs font-mono pl-2 pr-1 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`}>
-                          <span>{record.ip}</span>
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${darkMode ? 'bg-indigo-500/20 text-indigo-200' : 'bg-indigo-500/20 text-indigo-700'}`}>
-                            {record.type}
-                          </span>
-                        </div>
-                      ))
+                          <div
+                            key={i}
+                            className={`flex items-center gap-1.5 text-xs font-mono pl-2 pr-1 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 ${darkMode ? "text-indigo-300" : "text-indigo-600"}`}
+                          >
+                            <span>{record.ip}</span>
+                            <span
+                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${darkMode ? "bg-indigo-500/20 text-indigo-200" : "bg-indigo-500/20 text-indigo-700"}`}
+                            >
+                              {record.type}
+                            </span>
+                          </div>
+                        ))
                     ) : (
-                      <span className="text-xs text-slate-500">No DNS records found</span>
+                      <span className="text-xs text-slate-500">
+                        No DNS records found
+                      </span>
                     )}
                   </div>
                 </div>
               </div>
-
-
             </div>
 
             {/* Right Column (Stacked Cards) */}
             <div className="lg:col-span-4 flex flex-col gap-6 min-w-0">
-              
               {/* Privacy Analysis Card */}
-              <div className={`border rounded-2xl p-5 shadow-xl ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
+              <div
+                className={`border rounded-2xl p-5 shadow-xl ${darkMode ? "bg-[#0f172a] border-slate-900" : "bg-white border-slate-200"}`}
+              >
                 <h3 className="font-bold text-base tracking-wide flex items-center gap-2 mb-4 border-b border-slate-800/15 dark:border-slate-800/50 pb-3">
                   <Shield className="w-5 h-5 text-blue-500" />
                   Privacy Protection
@@ -659,7 +878,13 @@ export default function Dashboard() {
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400">Jurisdiction Country</span>
                     <div className="flex items-center gap-1.5 font-bold">
-                      {flagUrl && <img src={flagUrl} className="w-4 h-3 object-cover rounded-sm" alt="Country" />}
+                      {flagUrl && (
+                        <img
+                          src={flagUrl}
+                          className="w-4 h-3 object-cover rounded-sm"
+                          alt="Country"
+                        />
+                      )}
                       {data.serverLocation.country}
                     </div>
                   </div>
@@ -680,33 +905,48 @@ export default function Dashboard() {
 
                   <div className="border-t border-slate-800/10 dark:border-slate-800/40 pt-4">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-slate-400">Connection Risk Score</span>
-                      <span className="font-extrabold text-xs text-blue-400">{data.privacy.riskScore}</span>
+                      <span className="text-slate-400">
+                        Connection Risk Score
+                      </span>
+                      <span className="font-extrabold text-xs text-blue-400">
+                        {data.privacy.riskScore}
+                      </span>
                     </div>
                     {/* Progress Bar */}
                     <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                      <div 
-                        className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full" 
+                      <div
+                        className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full"
                         style={{ width: `${data.privacy.riskScoreVal * 10}%` }}
                       ></div>
                     </div>
                     <p className="text-[10px] text-slate-500 mt-2">
-                      Calculated using ISP integrity, jurisdiction compliance laws, and tracking cookies.
+                      Calculated using ISP integrity, jurisdiction compliance
+                      laws, and tracking cookies.
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* Sustainability Card */}
-              <div className={`border rounded-2xl p-5 shadow-xl relative overflow-hidden ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
-                
+              <div
+                className={`border rounded-2xl p-5 shadow-xl relative overflow-hidden ${darkMode ? "bg-[#0f172a] border-slate-900" : "bg-white border-slate-200"}`}
+              >
                 {/* Wind turbine background decoration */}
                 <div className="absolute right-2 bottom-2 w-28 h-28 opacity-15 select-none pointer-events-none">
-                  <svg viewBox="0 0 100 100" className="w-full h-full text-emerald-500">
+                  <svg
+                    viewBox="0 0 100 100"
+                    className="w-full h-full text-emerald-500"
+                  >
                     {/* Tower */}
-                    <path d="M 48 90 L 52 90 L 50.5 45 L 49.5 45 Z" fill="currentColor" />
+                    <path
+                      d="M 48 90 L 52 90 L 50.5 45 L 49.5 45 Z"
+                      fill="currentColor"
+                    />
                     {/* Spinning Blades */}
-                    <g transform="translate(50, 45)" className="animate-spin-slow origin-center">
+                    <g
+                      transform="translate(50, 45)"
+                      className="animate-spin-slow origin-center"
+                    >
                       <circle cx="0" cy="0" r="1.5" fill="currentColor" />
                       <path d="M 0 0 L 1 -35 L -1 -35 Z" fill="currentColor" />
                       <path d="M 0 0 L 30 18 L 29 20 Z" fill="currentColor" />
@@ -743,18 +983,20 @@ export default function Dashboard() {
 
                   <div className="border-t border-slate-800/10 dark:border-slate-800/40 pt-4">
                     <p className="text-xs text-emerald-400 font-medium">
-                      This hosting infrastructure is environmentally friendly. 
+                      This hosting infrastructure is environmentally friendly.
                     </p>
                     <p className="text-[10px] text-slate-500 mt-1.5">
-                      Covers carbon offset investments and verified green network credentials from The Green Web Foundation.
+                      Covers carbon offset investments and verified green
+                      network credentials from The Green Web Foundation.
                     </p>
                   </div>
                 </div>
               </div>
 
-
               {/* Trackers & Connections Card */}
-              <div className={`border rounded-2xl p-5 shadow-xl ${darkMode ? 'bg-[#0f172a] border-slate-900' : 'bg-white border-slate-200'}`}>
+              <div
+                className={`border rounded-2xl p-5 shadow-xl ${darkMode ? "bg-[#0f172a] border-slate-900" : "bg-white border-slate-200"}`}
+              >
                 <div className="flex justify-between items-center border-b border-slate-800/15 dark:border-slate-800/50 pb-3 mb-4">
                   <h3 className="font-bold text-base tracking-wide flex items-center gap-2">
                     <Eye className="w-5 h-5 text-indigo-500" />
@@ -767,23 +1009,28 @@ export default function Dashboard() {
 
                 <div className="space-y-3">
                   {data.trackers.map((tracker, i) => (
-                    <div 
-                      key={i} 
-                      className={`flex items-center justify-between p-3 rounded-xl border ${darkMode ? 'bg-[#0c1220]/60 border-slate-900' : 'bg-slate-50 border-slate-150'}`}
+                    <div
+                      key={i}
+                      className={`flex items-center justify-between p-3 rounded-xl border ${darkMode ? "bg-[#0c1220]/60 border-slate-900" : "bg-slate-50 border-slate-150"}`}
                     >
                       <div className="flex items-center gap-3">
-                        <img 
-                          src={tracker.favicon} 
-                          className="w-4 h-4 rounded-sm" 
-                          alt={tracker.name} 
-                          onError={(e) => { e.target.src = 'https://icons.duckduckgo.com/ip3/example.com.ico'; }}
+                        <img
+                          src={tracker.favicon}
+                          className="w-4 h-4 rounded-sm"
+                          alt={tracker.name}
+                          onError={(e) => {
+                            e.target.src =
+                              "https://icons.duckduckgo.com/ip3/example.com.ico";
+                          }}
                         />
                         <div>
                           <h4 className="font-bold text-xs">{tracker.name}</h4>
-                          <p className="text-[10px] text-slate-500 truncate max-w-[150px]">{tracker.domain}</p>
+                          <p className="text-[10px] text-slate-500 truncate max-w-[150px]">
+                            {tracker.domain}
+                          </p>
                         </div>
                       </div>
-                      
+
                       <span className="text-[10px] font-bold text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
                         {tracker.status}
                       </span>
@@ -791,8 +1038,8 @@ export default function Dashboard() {
                   ))}
                 </div>
 
-                <button 
-                  onClick={() => setActiveTab('lists')}
+                <button
+                  onClick={() => setActiveTab("lists")}
                   className="w-full mt-4 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white py-2.5 rounded-xl border border-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span>Audit All Connections</span>
@@ -801,57 +1048,78 @@ export default function Dashboard() {
               </div>
 
               {/* Informational Widget */}
-              <div className={`border rounded-2xl p-5 shadow-xl border-dashed ${darkMode ? 'bg-[#0d1222] border-blue-500/20 text-slate-400' : 'bg-blue-50/50 border-blue-200 text-slate-600'}`}>
+              <div
+                className={`border rounded-2xl p-5 shadow-xl border-dashed ${darkMode ? "bg-[#0d1222] border-blue-500/20 text-slate-400" : "bg-blue-50/50 border-blue-200 text-slate-600"}`}
+              >
                 <div className="flex gap-3">
                   <Info className="w-6 h-6 text-blue-500 shrink-0" />
                   <div>
-                    <h4 className={`font-bold text-xs mb-1 ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>
+                    <h4
+                      className={`font-bold text-xs mb-1 ${darkMode ? "text-blue-400" : "text-blue-800"}`}
+                    >
                       Why Server Location Matters?
                     </h4>
                     <p className="text-[11px] leading-relaxed">
-                      Websites you visit store your data on global hosting servers. Knowing where these nodes reside helps you comprehend jurisdiction data protection laws, connection route path, latency speed, and the overall carbon impact of your network queries.
+                      Websites you visit store your data on global hosting
+                      servers. Knowing where these nodes reside helps you
+                      comprehend jurisdiction data protection laws, connection
+                      route path, latency speed, and the overall carbon impact
+                      of your network queries.
                     </p>
                   </div>
                 </div>
               </div>
-
-
-
             </div>
           </>
         )}
 
         {/* TAB 2: HISTORY */}
-        {activeTab === 'history' && (
+        {activeTab === "history" && (
           <div className="lg:col-span-12 flex flex-col gap-6">
-            <div className={`border rounded-2xl p-6 shadow-xl ${darkMode ? 'bg-[#0f172a] border-slate-900 text-slate-200' : 'bg-white border-slate-200 text-slate-800'}`}>
-              <div className={`flex justify-between items-center border-b pb-4 mb-6 ${darkMode ? 'border-slate-800/40' : 'border-slate-200'}`}>
+            <div
+              className={`border rounded-2xl p-6 shadow-xl ${darkMode ? "bg-[#0f172a] border-slate-900 text-slate-200" : "bg-white border-slate-200 text-slate-800"}`}
+            >
+              <div
+                className={`flex justify-between items-center border-b pb-4 mb-6 ${darkMode ? "border-slate-800/40" : "border-slate-200"}`}
+              >
                 <div>
                   <h2 className="text-xl font-bold flex items-center gap-2">
                     <History className="w-6 h-6 text-blue-500" />
                     Connection Domain History
                   </h2>
-                  <p className={`text-xs mt-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Recently audited websites on this browser instance.</p>
+                  <p
+                    className={`text-xs mt-1 ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+                  >
+                    Recently audited websites on this browser instance.
+                  </p>
                 </div>
-                <button 
+                <button
                   onClick={handleClearHistory}
                   disabled={clearedFeedback}
-                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${clearedFeedback ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'text-red-500 hover:text-red-400 border-red-500/20 hover:bg-red-500/5'}`}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${clearedFeedback ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "text-red-500 hover:text-red-400 border-red-500/20 hover:bg-red-500/5"}`}
                 >
-                  {clearedFeedback ? '✓ Cleared!' : 'Clear History'}
+                  {clearedFeedback ? "✓ Cleared!" : "Clear History"}
                 </button>
               </div>
 
               {scanHistory.length === 0 ? (
-                <div className={`text-center py-12 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                  <History className={`w-12 h-12 mx-auto mb-3 animate-pulse ${darkMode ? 'text-slate-700' : 'text-slate-300'}`} />
-                  <p className="font-semibold text-sm">No historical connection scans recorded.</p>
+                <div
+                  className={`text-center py-12 ${darkMode ? "text-slate-500" : "text-slate-400"}`}
+                >
+                  <History
+                    className={`w-12 h-12 mx-auto mb-3 animate-pulse ${darkMode ? "text-slate-700" : "text-slate-300"}`}
+                  />
+                  <p className="font-semibold text-sm">
+                    No historical connection scans recorded.
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className={`border-b font-bold uppercase tracking-wider text-[10px] ${darkMode ? 'border-slate-800/30 text-slate-400' : 'border-slate-200 text-slate-500'}`}>
+                      <tr
+                        className={`border-b font-bold uppercase tracking-wider text-[10px] ${darkMode ? "border-slate-800/30 text-slate-400" : "border-slate-200 text-slate-500"}`}
+                      >
                         <th className="pb-3 pt-1">Domain</th>
                         <th className="pb-3 pt-1">IP Address</th>
                         <th className="pb-3 pt-1">Hosting Provider</th>
@@ -861,31 +1129,57 @@ export default function Dashboard() {
                         <th className="pb-3 pt-1 text-right">Action</th>
                       </tr>
                     </thead>
-                    <tbody className={`divide-y ${darkMode ? 'divide-slate-800/30' : 'divide-slate-200/50'}`}>
+                    <tbody
+                      className={`divide-y ${darkMode ? "divide-slate-800/30" : "divide-slate-200/50"}`}
+                    >
                       {scanHistory.map((item, i) => (
-                        <tr key={i} className={darkMode ? 'hover:bg-slate-800/10' : 'hover:bg-slate-50'}>
-                          <td className={`py-3.5 font-bold flex items-center gap-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                            <img 
-                              src={`https://icons.duckduckgo.com/ip3/${item.domain}.ico`} 
-                              alt="favicon" 
+                        <tr
+                          key={i}
+                          className={
+                            darkMode
+                              ? "hover:bg-slate-800/10"
+                              : "hover:bg-slate-50"
+                          }
+                        >
+                          <td
+                            className={`py-3.5 font-bold flex items-center gap-2 ${darkMode ? "text-slate-200" : "text-slate-800"}`}
+                          >
+                            <img
+                              src={`https://icons.duckduckgo.com/ip3/${item.domain}.ico`}
+                              alt="favicon"
                               className="w-4 h-4 rounded-sm"
-                              onError={(e) => { e.target.src = 'https://icons.duckduckgo.com/ip3/example.com.ico'; }}
+                              onError={(e) => {
+                                e.target.src =
+                                  "https://icons.duckduckgo.com/ip3/example.com.ico";
+                              }}
                             />
                             {item.domain}
                           </td>
-                          <td className={`py-3.5 font-mono ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>{item.ip}</td>
-                          <td className="py-3.5 font-semibold">{item.provider}</td>
-                          <td className="py-3.5">{item.city}, {item.country}</td>
+                          <td
+                            className={`py-3.5 font-mono ${darkMode ? "text-slate-400" : "text-slate-600"}`}
+                          >
+                            {item.ip}
+                          </td>
+                          <td className="py-3.5 font-semibold">
+                            {item.provider}
+                          </td>
+                          <td className="py-3.5">
+                            {item.city}, {item.country}
+                          </td>
                           <td className="py-3.5">
                             <span className="font-bold flex items-center gap-1">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                               {item.latency} ms
                             </span>
                           </td>
-                          <td className={`py-3.5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{item.date}</td>
+                          <td
+                            className={`py-3.5 ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+                          >
+                            {item.date}
+                          </td>
                           <td className="py-3.5 text-right">
-                            <a 
-                              href={`?domain=${item.domain}`} 
+                            <a
+                              href={`?domain=${item.domain}`}
                               className="text-blue-500 hover:text-blue-400 font-bold flex items-center justify-end gap-1"
                             >
                               <span>Re-analyze</span>
@@ -903,83 +1197,133 @@ export default function Dashboard() {
         )}
 
         {/* TAB 3: LISTS */}
-        {activeTab === 'lists' && (
+        {activeTab === "lists" && (
           <div className="lg:col-span-12">
-            <div className={`border rounded-2xl p-6 shadow-xl ${darkMode ? 'bg-[#0f172a] border-slate-900 text-slate-200' : 'bg-white border-slate-200 text-slate-800'}`}>
+            <div
+              className={`border rounded-2xl p-6 shadow-xl ${darkMode ? "bg-[#0f172a] border-slate-900 text-slate-200" : "bg-white border-slate-200 text-slate-800"}`}
+            >
               <h2 className="text-xl font-bold flex items-center gap-2 mb-2">
                 <ListFilter className="w-6 h-6 text-blue-500" />
                 Tracker & Domain Filters
               </h2>
-              <p className={`text-xs mb-6 border-b pb-4 ${darkMode ? 'border-slate-800/10 dark:border-slate-800/40 text-slate-400' : 'border-slate-200 text-slate-500'}`}>
+              <p
+                className={`text-xs mb-6 border-b pb-4 ${darkMode ? "border-slate-800/10 dark:border-slate-800/40 text-slate-400" : "border-slate-200 text-slate-500"}`}
+              >
                 Configure local domain blocking rules and exception white-lists.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className={`font-bold text-sm mb-3 flex justify-between items-center ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                  <h3
+                    className={`font-bold text-sm mb-3 flex justify-between items-center ${darkMode ? "text-slate-300" : "text-slate-700"}`}
+                  >
                     <span>Blocked Analytics and Ad Trackers</span>
-                    <span className="text-[10px] px-2 py-0.5 bg-red-500/10 text-red-400 rounded-md">3 Active Rules</span>
+                    <span className="text-[10px] px-2 py-0.5 bg-red-500/10 text-red-400 rounded-md">
+                      3 Active Rules
+                    </span>
                   </h3>
                   <div className="space-y-3">
-                    <div className={`p-3 rounded-xl border flex justify-between items-center text-xs ${darkMode ? 'bg-[#0c1220]/60 border-slate-800 text-slate-250' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
+                    <div
+                      className={`p-3 rounded-xl border flex justify-between items-center text-xs ${darkMode ? "bg-[#0c1220]/60 border-slate-800 text-slate-250" : "bg-slate-50 border-slate-200 text-slate-700"}`}
+                    >
                       <div>
                         <div className="font-bold">Google Analytics Engine</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">analytics.google.com</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          analytics.google.com
+                        </div>
                       </div>
-                      <span className="px-2 py-0.5 bg-red-500/10 text-red-400 rounded font-semibold uppercase tracking-wider text-[9px]">Strict Block</span>
+                      <span className="px-2 py-0.5 bg-red-500/10 text-red-400 rounded font-semibold uppercase tracking-wider text-[9px]">
+                        Strict Block
+                      </span>
                     </div>
-                    <div className={`p-3 rounded-xl border flex justify-between items-center text-xs ${darkMode ? 'bg-[#0c1220]/60 border-slate-800 text-slate-250' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
+                    <div
+                      className={`p-3 rounded-xl border flex justify-between items-center text-xs ${darkMode ? "bg-[#0c1220]/60 border-slate-800 text-slate-250" : "bg-slate-50 border-slate-200 text-slate-700"}`}
+                    >
                       <div>
-                        <div className="font-bold">Facebook Conversions Pixel</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">connect.facebook.net</div>
+                        <div className="font-bold">
+                          Facebook Conversions Pixel
+                        </div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          connect.facebook.net
+                        </div>
                       </div>
-                      <span className="px-2 py-0.5 bg-red-500/10 text-red-400 rounded font-semibold uppercase tracking-wider text-[9px]">Strict Block</span>
+                      <span className="px-2 py-0.5 bg-red-500/10 text-red-400 rounded font-semibold uppercase tracking-wider text-[9px]">
+                        Strict Block
+                      </span>
                     </div>
-                    <div className={`p-3 rounded-xl border flex justify-between items-center text-xs ${darkMode ? 'bg-[#0c1220]/60 border-slate-800 text-slate-250' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
+                    <div
+                      className={`p-3 rounded-xl border flex justify-between items-center text-xs ${darkMode ? "bg-[#0c1220]/60 border-slate-800 text-slate-250" : "bg-slate-50 border-slate-200 text-slate-700"}`}
+                    >
                       <div>
                         <div className="font-bold">Amazon Marketing Ads</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">fls-na.amazon.com</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          fls-na.amazon.com
+                        </div>
                       </div>
-                      <span className="px-2 py-0.5 bg-red-500/10 text-red-400 rounded font-semibold uppercase tracking-wider text-[9px]">Strict Block</span>
+                      <span className="px-2 py-0.5 bg-red-500/10 text-red-400 rounded font-semibold uppercase tracking-wider text-[9px]">
+                        Strict Block
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className={`font-bold text-sm mb-3 flex justify-between items-center ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                  <h3
+                    className={`font-bold text-sm mb-3 flex justify-between items-center ${darkMode ? "text-slate-300" : "text-slate-700"}`}
+                  >
                     <span>Whitelist Extensions Exceptions</span>
-                    <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-md">2 Exempted</span>
+                    <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-md">
+                      2 Exempted
+                    </span>
                   </h3>
                   <div className="space-y-3">
-                    <div className={`p-3 rounded-xl border flex justify-between items-center text-xs ${darkMode ? 'bg-[#0c1220]/60 border-slate-800 text-slate-250' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
+                    <div
+                      className={`p-3 rounded-xl border flex justify-between items-center text-xs ${darkMode ? "bg-[#0c1220]/60 border-slate-800 text-slate-250" : "bg-slate-50 border-slate-200 text-slate-700"}`}
+                    >
                       <div>
                         <div className="font-bold">GitHub Platform API</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">api.github.com</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          api.github.com
+                        </div>
                       </div>
-                      <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded font-semibold uppercase tracking-wider text-[9px]">Exempted</span>
+                      <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded font-semibold uppercase tracking-wider text-[9px]">
+                        Exempted
+                      </span>
                     </div>
-                    <div className={`p-3 rounded-xl border flex justify-between items-center text-xs ${darkMode ? 'bg-[#0c1220]/60 border-slate-800 text-slate-250' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
+                    <div
+                      className={`p-3 rounded-xl border flex justify-between items-center text-xs ${darkMode ? "bg-[#0c1220]/60 border-slate-800 text-slate-250" : "bg-slate-50 border-slate-200 text-slate-700"}`}
+                    >
                       <div>
                         <div className="font-bold">Google Fonts Services</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">fonts.googleapis.com</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          fonts.googleapis.com
+                        </div>
                       </div>
-                      <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded font-semibold uppercase tracking-wider text-[9px]">Exempted</span>
+                      <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded font-semibold uppercase tracking-wider text-[9px]">
+                        Exempted
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="mt-8">
-                <h3 className={`font-bold text-sm mb-3 flex justify-between items-center ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                <h3
+                  className={`font-bold text-sm mb-3 flex justify-between items-center ${darkMode ? "text-slate-300" : "text-slate-700"}`}
+                >
                   <span>Browser Cookies Stored for Domain</span>
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded-md">
                       {data.cookies ? data.cookies.length : 0} Cookies
                     </span>
                     {data.cookies && data.cookies.length > 0 && (
-                      <button 
+                      <button
                         onClick={() => {
-                          if(window.confirm('Are you sure you want to clear all cookies for this domain? You may be logged out.')){
+                          if (
+                            window.confirm(
+                              "Are you sure you want to clear all cookies for this domain? You may be logged out.",
+                            )
+                          ) {
                             removeCookies(data.cookies);
                           }
                         }}
@@ -990,29 +1334,59 @@ export default function Dashboard() {
                     )}
                   </div>
                 </h3>
-                
+
                 {data.cookies && data.cookies.length > 0 ? (
-                  <div className={`border rounded-xl max-h-60 overflow-y-auto ${darkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+                  <div
+                    className={`border rounded-xl max-h-60 overflow-y-auto ${darkMode ? "border-slate-800" : "border-slate-200"}`}
+                  >
                     <table className="w-full text-left text-xs">
-                      <thead className={`sticky top-0 ${darkMode ? 'bg-[#0f172a]' : 'bg-white'}`}>
-                        <tr className={`border-b font-bold text-[10px] uppercase tracking-wider ${darkMode ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500'}`}>
+                      <thead
+                        className={`sticky top-0 ${darkMode ? "bg-[#0f172a]" : "bg-white"}`}
+                      >
+                        <tr
+                          className={`border-b font-bold text-[10px] uppercase tracking-wider ${darkMode ? "border-slate-800 text-slate-400" : "border-slate-200 text-slate-500"}`}
+                        >
                           <th className="p-3">Name</th>
                           <th className="p-3">Domain</th>
                           <th className="p-3">Value</th>
                           <th className="p-3 text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className={`divide-y ${darkMode ? 'divide-slate-800/50' : 'divide-slate-200/50'}`}>
+                      <tbody
+                        className={`divide-y ${darkMode ? "divide-slate-800/50" : "divide-slate-200/50"}`}
+                      >
                         {data.cookies.map((cookie, idx) => (
-                          <tr key={idx} className={darkMode ? 'hover:bg-slate-800/20' : 'hover:bg-slate-50'}>
-                            <td className="p-3 font-semibold break-all">{cookie.name}</td>
+                          <tr
+                            key={idx}
+                            className={
+                              darkMode
+                                ? "hover:bg-slate-800/20"
+                                : "hover:bg-slate-50"
+                            }
+                          >
+                            <td className="p-3 font-semibold break-all">
+                              {cookie.name}
+                            </td>
                             <td className="p-3 text-[10px]">{cookie.domain}</td>
-                            <td className="p-3 text-[10px] font-mono truncate max-w-[150px] lg:max-w-[200px]" title={cookie.value}>{cookie.value}</td>
+                            <td
+                              className="p-3 text-[10px] font-mono truncate max-w-[150px] lg:max-w-[200px]"
+                              title={cookie.value}
+                            >
+                              {cookie.value}
+                            </td>
                             <td className="p-3 text-right space-x-2 whitespace-nowrap">
-                              <button onClick={() => setInfoCookie(cookie)} className={`p-1.5 rounded-lg ${darkMode ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`} title="Cookie Info">
+                              <button
+                                onClick={() => setInfoCookie(cookie)}
+                                className={`p-1.5 rounded-lg ${darkMode ? "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20" : "bg-blue-100 text-blue-600 hover:bg-blue-200"}`}
+                                title="Cookie Info"
+                              >
                                 <Info className="w-4 h-4" />
                               </button>
-                              <button onClick={() => removeCookies([cookie])} className={`p-1.5 rounded-lg ${darkMode ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-red-100 text-red-600 hover:bg-red-200'}`} title="Delete Cookie">
+                              <button
+                                onClick={() => removeCookies([cookie])}
+                                className={`p-1.5 rounded-lg ${darkMode ? "bg-red-500/10 text-red-400 hover:bg-red-500/20" : "bg-red-100 text-red-600 hover:bg-red-200"}`}
+                                title="Delete Cookie"
+                              >
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </td>
@@ -1022,7 +1396,9 @@ export default function Dashboard() {
                     </table>
                   </div>
                 ) : (
-                  <div className={`p-4 text-center rounded-xl border border-dashed text-xs ${darkMode ? 'border-slate-800 text-slate-500' : 'border-slate-300 text-slate-500'}`}>
+                  <div
+                    className={`p-4 text-center rounded-xl border border-dashed text-xs ${darkMode ? "border-slate-800 text-slate-500" : "border-slate-300 text-slate-500"}`}
+                  >
                     No cookies found for this domain.
                   </div>
                 )}
@@ -1032,34 +1408,53 @@ export default function Dashboard() {
         )}
 
         {/* TAB 4: SETTINGS */}
-        {activeTab === 'settings' && (
+        {activeTab === "settings" && (
           <div className="lg:col-span-12">
-            <div className={`border rounded-2xl p-6 shadow-md ${darkMode ? 'bg-[#0f172a] border-slate-900 text-slate-200' : 'bg-white border-slate-200 text-slate-800'}`}>
+            <div
+              className={`border rounded-2xl p-6 shadow-md ${darkMode ? "bg-[#0f172a] border-slate-900 text-slate-200" : "bg-white border-slate-200 text-slate-800"}`}
+            >
               <h2 className="text-xl font-bold flex items-center gap-2 mb-2">
                 <Settings className="w-6 h-6 text-blue-500" />
                 Extension Configuration
               </h2>
               <p className="text-xs text-slate-400 mb-6 border-b border-slate-800/10 dark:border-slate-800/40 pb-4">
-                Customize NetPin scan settings, notifications, and analytics engines.
+                Customize NetPin scan settings, notifications, and analytics
+                engines.
               </p>
 
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {/* CATEGORY 1: Analysis & Display */}
-                <div className={`border rounded-xl p-5 ${darkMode ? 'border-slate-800/60 bg-slate-800/20' : 'border-slate-200 bg-slate-50/50'}`}>
-                  <h3 className={`font-bold flex items-center gap-2 mb-4 pb-3 border-b ${darkMode ? 'border-slate-700 text-blue-400' : 'border-slate-200 text-blue-600'}`}>
+                <div
+                  className={`border rounded-xl p-5 ${darkMode ? "border-slate-800/60 bg-slate-800/20" : "border-slate-200 bg-slate-50/50"}`}
+                >
+                  <h3
+                    className={`font-bold flex items-center gap-2 mb-4 pb-3 border-b ${darkMode ? "border-slate-700 text-blue-400" : "border-slate-200 text-blue-600"}`}
+                  >
                     <Monitor className="w-4 h-4" />
                     Analysis & Display
                   </h3>
-                  
+
                   <div className="space-y-5">
                     {/* Auto Analyze */}
                     <div className="flex justify-between items-center">
                       <div>
-                        <h4 className="font-bold text-sm">Auto-analyze current tabs</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Automatically trigger geolocation scans when loading new webpages.</p>
+                        <h4 className="font-bold text-sm">
+                          Auto-analyze current tabs
+                        </h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Automatically trigger geolocation scans when loading
+                          new webpages.
+                        </p>
                       </div>
-                      <button onClick={() => toggleSetting('autoAnalyze')} className="text-blue-500 hover:text-blue-400 ">
-                        {settings.autoAnalyze ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                      <button
+                        onClick={() => toggleSetting("autoAnalyze")}
+                        className="text-blue-500 hover:text-blue-400 "
+                      >
+                        {settings.autoAnalyze ? (
+                          <ToggleRight className="w-10 h-10" />
+                        ) : (
+                          <ToggleLeft className="w-10 h-10 text-slate-600" />
+                        )}
                       </button>
                     </div>
 
@@ -1067,23 +1462,40 @@ export default function Dashboard() {
                     <div className="flex justify-between items-center">
                       <div>
                         <h4 className="font-bold text-sm">Show IPv6 Records</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Display AAAA IPv6 records alongside standard IPv4 addresses in the dashboard.</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Display AAAA IPv6 records alongside standard IPv4
+                          addresses in the dashboard.
+                        </p>
                       </div>
-                      <button onClick={() => toggleSetting('showIpv6')} className="text-blue-500 hover:text-blue-400 ">
-                        {settings.showIpv6 ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                      <button
+                        onClick={() => toggleSetting("showIpv6")}
+                        className="text-blue-500 hover:text-blue-400 "
+                      >
+                        {settings.showIpv6 ? (
+                          <ToggleRight className="w-10 h-10" />
+                        ) : (
+                          <ToggleLeft className="w-10 h-10 text-slate-600" />
+                        )}
                       </button>
                     </div>
 
                     {/* Export Format */}
                     <div className="flex justify-between items-center">
                       <div>
-                        <h4 className="font-bold text-sm">Default Export Format</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Choose the default file type when downloading analysis reports.</p>
+                        <h4 className="font-bold text-sm">
+                          Default Export Format
+                        </h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Choose the default file type when downloading analysis
+                          reports.
+                        </p>
                       </div>
-                      <select 
-                        value={settings.exportFormat} 
-                        onChange={(e) => updateSetting('exportFormat', e.target.value)}
-                        className={`text-sm px-3 py-1.5 rounded border outline-none ${darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300'}`}
+                      <select
+                        value={settings.exportFormat}
+                        onChange={(e) =>
+                          updateSetting("exportFormat", e.target.value)
+                        }
+                        className={`text-sm px-3 py-1.5 rounded border outline-none ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-300"}`}
                       >
                         <option value="json">JSON (.json)</option>
                         <option value="csv">CSV (.csv)</option>
@@ -1094,89 +1506,154 @@ export default function Dashboard() {
                 </div>
 
                 {/* CATEGORY 2: Privacy & Security */}
-                <div className={`border rounded-xl p-5 ${darkMode ? 'border-slate-800/60 bg-slate-800/20' : 'border-slate-200 bg-slate-50/50'}`}>
-                  <h3 className={`font-bold flex items-center gap-2 mb-4 pb-3 border-b ${darkMode ? 'border-slate-700 text-purple-400' : 'border-slate-200 text-purple-600'}`}>
+                <div
+                  className={`border rounded-xl p-5 ${darkMode ? "border-slate-800/60 bg-slate-800/20" : "border-slate-200 bg-slate-50/50"}`}
+                >
+                  <h3
+                    className={`font-bold flex items-center gap-2 mb-4 pb-3 border-b ${darkMode ? "border-slate-700 text-purple-400" : "border-slate-200 text-purple-600"}`}
+                  >
                     <Shield className="w-4 h-4" />
                     Privacy & Security
                   </h3>
-                  
+
                   <div className="space-y-5">
                     {/* Block Trackers */}
                     <div className="flex justify-between items-center">
                       <div>
-                        <h4 className="font-bold text-sm">Enable Anti-Tracker Blockers</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Actively intercept known ad networks, analytical spiders, and tracker scripts.</p>
+                        <h4 className="font-bold text-sm">
+                          Enable Anti-Tracker Blockers
+                        </h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Actively intercept known ad networks, analytical
+                          spiders, and tracker scripts.
+                        </p>
                       </div>
-                      <button onClick={() => toggleSetting('blockTrackers')} className="text-blue-500 hover:text-blue-400 ">
-                        {settings.blockTrackers ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                      <button
+                        onClick={() => toggleSetting("blockTrackers")}
+                        className="text-blue-500 hover:text-blue-400 "
+                      >
+                        {settings.blockTrackers ? (
+                          <ToggleRight className="w-10 h-10" />
+                        ) : (
+                          <ToggleLeft className="w-10 h-10 text-slate-600" />
+                        )}
                       </button>
                     </div>
 
                     {/* Strict Tracker Block */}
                     <div className="flex justify-between items-center">
                       <div>
-                        <h4 className="font-bold text-sm text-rose-400">Strict Tracker Blocking (Aggressive Mode)</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Instantly block and halt analysis if ANY trackers are detected on the website.</p>
+                        <h4 className="font-bold text-sm text-rose-400">
+                          Strict Tracker Blocking (Aggressive Mode)
+                        </h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Instantly block and halt analysis if ANY trackers are
+                          detected on the website.
+                        </p>
                       </div>
-                      <button onClick={() => toggleSetting('strictTrackerBlock')} className="text-rose-500 hover:text-rose-400 ">
-                        {settings.strictTrackerBlock ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                      <button
+                        onClick={() => toggleSetting("strictTrackerBlock")}
+                        className="text-rose-500 hover:text-rose-400 "
+                      >
+                        {settings.strictTrackerBlock ? (
+                          <ToggleRight className="w-10 h-10" />
+                        ) : (
+                          <ToggleLeft className="w-10 h-10 text-slate-600" />
+                        )}
                       </button>
                     </div>
                   </div>
                 </div>
 
                 {/* CATEGORY 3: Notifications & Alerts */}
-                <div className={`border rounded-xl p-5 ${darkMode ? 'border-slate-800/60 bg-slate-800/20' : 'border-slate-200 bg-slate-50/50'}`}>
-                  <h3 className={`font-bold flex items-center gap-2 mb-4 pb-3 border-b ${darkMode ? 'border-slate-700 text-orange-400' : 'border-slate-200 text-orange-600'}`}>
+                <div
+                  className={`border rounded-xl p-5 ${darkMode ? "border-slate-800/60 bg-slate-800/20" : "border-slate-200 bg-slate-50/50"}`}
+                >
+                  <h3
+                    className={`font-bold flex items-center gap-2 mb-4 pb-3 border-b ${darkMode ? "border-slate-700 text-orange-400" : "border-slate-200 text-orange-600"}`}
+                  >
                     <Bell className="w-4 h-4" />
                     Notifications & Alerts
                   </h3>
-                  
+
                   <div className="space-y-5">
                     {/* Tracker Alerts */}
                     <div className="flex justify-between items-center">
                       <div>
-                        <h4 className="font-bold text-sm">High-Risk Tracker Alerts</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Notify when navigating to websites with more than 10 active tracking scripts.</p>
+                        <h4 className="font-bold text-sm">
+                          High-Risk Tracker Alerts
+                        </h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Notify when navigating to websites with more than 10
+                          active tracking scripts.
+                        </p>
                       </div>
-                      <button onClick={() => toggleSetting('trackerAlerts')} className="text-blue-500 hover:text-blue-400 ">
-                        {settings.trackerAlerts ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                      <button
+                        onClick={() => toggleSetting("trackerAlerts")}
+                        className="text-blue-500 hover:text-blue-400 "
+                      >
+                        {settings.trackerAlerts ? (
+                          <ToggleRight className="w-10 h-10" />
+                        ) : (
+                          <ToggleLeft className="w-10 h-10 text-slate-600" />
+                        )}
                       </button>
                     </div>
 
                     {/* Green Alerts */}
                     <div className="flex justify-between items-center">
                       <div>
-                        <h4 className="font-bold text-sm">Carbon Warning Alerts</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Notify when navigating to websites running on dirty coal/fossil hosting servers.</p>
+                        <h4 className="font-bold text-sm">
+                          Carbon Warning Alerts
+                        </h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Notify when navigating to websites running on dirty
+                          coal/fossil hosting servers.
+                        </p>
                       </div>
-                      <button onClick={() => toggleSetting('greenAlerts')} className="text-blue-500 hover:text-blue-400 ">
-                        {settings.greenAlerts ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+                      <button
+                        onClick={() => toggleSetting("greenAlerts")}
+                        className="text-blue-500 hover:text-blue-400 "
+                      >
+                        {settings.greenAlerts ? (
+                          <ToggleRight className="w-10 h-10" />
+                        ) : (
+                          <ToggleLeft className="w-10 h-10 text-slate-600" />
+                        )}
                       </button>
                     </div>
                   </div>
                 </div>
 
                 {/* CATEGORY 4: Data Management */}
-                <div className={`border rounded-xl p-5 ${darkMode ? 'border-slate-800/60 bg-slate-800/20' : 'border-slate-200 bg-slate-50/50'}`}>
-                  <h3 className={`font-bold flex items-center gap-2 mb-4 pb-3 border-b ${darkMode ? 'border-slate-700 text-emerald-400' : 'border-slate-200 text-emerald-600'}`}>
+                <div
+                  className={`border rounded-xl p-5 ${darkMode ? "border-slate-800/60 bg-slate-800/20" : "border-slate-200 bg-slate-50/50"}`}
+                >
+                  <h3
+                    className={`font-bold flex items-center gap-2 mb-4 pb-3 border-b ${darkMode ? "border-slate-700 text-emerald-400" : "border-slate-200 text-emerald-600"}`}
+                  >
                     <Database className="w-4 h-4" />
                     Data Management
                   </h3>
-                  
+
                   <div className="space-y-5">
                     {/* Clear History */}
                     <div className="flex justify-between items-center">
                       <div>
-                        <h4 className="font-bold text-sm text-red-500">Clear Analysis History</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Permanently delete all locally stored connection scan logs.</p>
+                        <h4 className="font-bold text-sm text-red-500">
+                          Clear Analysis History
+                        </h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Permanently delete all locally stored connection scan
+                          logs.
+                        </p>
                       </div>
-                      <button 
-                        onClick={handleClearHistory} 
+                      <button
+                        onClick={handleClearHistory}
                         disabled={clearedFeedback}
-                        className={`px-4 py-2 border rounded-lg text-xs font-bold transition-colors ${clearedFeedback ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/20'}`}
+                        className={`px-4 py-2 border rounded-lg text-xs font-bold transition-colors ${clearedFeedback ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/20"}`}
                       >
-                        {clearedFeedback ? '✓ Deleted!' : 'Delete Local Data'}
+                        {clearedFeedback ? "✓ Deleted!" : "Delete Local Data"}
                       </button>
                     </div>
                   </div>
@@ -1187,24 +1664,30 @@ export default function Dashboard() {
         )}
 
         {/* TAB 5: ABOUT */}
-        {activeTab === 'about' && (
+        {activeTab === "about" && (
           <div className="lg:col-span-12 flex flex-col items-center max-w-5xl mx-auto w-full mb-12 animate-fade-in">
-            
             {/* Header Section */}
             <div className="flex flex-col items-center text-center mt-12 mb-16">
-              <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(59,130,246,0.15)] ${darkMode ? 'bg-[#151c2e] border border-[#2e3b5e]' : 'bg-blue-50 border border-blue-200'}`}>
-                <img src={netpinLogo} className="w-10 h-10" alt="NetPin Logo" />
+              <div className="mb-6 flex items-center justify-center">
+                <AnimatedLogo size="xl" darkMode={darkMode} />
               </div>
               <h2 className="text-4xl font-extrabold tracking-wide bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent mb-4">
                 NetPin
               </h2>
-              <div className={`text-xs font-semibold px-4 py-1.5 rounded-full mb-8 ${darkMode ? 'bg-[#2a3449] text-slate-300' : 'bg-slate-200 text-slate-700'}`}>
+              <div
+                className={`text-xs font-semibold px-4 py-1.5 rounded-full mb-8 ${darkMode ? "bg-[#2a3449] text-slate-300" : "bg-slate-200 text-slate-700"}`}
+              >
                 Version 1.0.0
               </div>
-              <p className={`text-[15px] leading-relaxed max-w-2xl font-medium ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                NetPin is a privacy and transparency extension that helps you<br />
-                see the hidden details behind every website you visit.<br />
-                Server locations, network routes, privacy laws, WHOIS intelligence, and carbon impact —<br />
+              <p
+                className={`text-[15px] leading-relaxed max-w-2xl font-medium ${darkMode ? "text-slate-400" : "text-slate-600"}`}
+              >
+                NetPin is a privacy and transparency extension that helps you
+                <br />
+                see the hidden details behind every website you visit.
+                <br />
+                Server locations, network routes, privacy laws, WHOIS
+                intelligence, and carbon impact —<br />
                 all in one place with exportable reports.
               </p>
             </div>
@@ -1212,90 +1695,215 @@ export default function Dashboard() {
             {/* Feature Cards Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 w-full mb-8">
               {/* Card 1 */}
-              <div className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+              <div
+                className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? "bg-[#0f172a] border border-slate-800/60" : "bg-white border border-slate-200 shadow-xl"}`}
+              >
                 <div className="mb-4">
                   <MapPin className="w-8 h-8 text-blue-500" strokeWidth={1.5} />
                 </div>
-                <h3 className={`font-bold text-sm mb-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Server Location</h3>
-                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>See where the<br/>website is hosted.</p>
+                <h3
+                  className={`font-bold text-sm mb-2 ${darkMode ? "text-slate-200" : "text-slate-800"}`}
+                >
+                  Server Location
+                </h3>
+                <p
+                  className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+                >
+                  See where the
+                  <br />
+                  website is hosted.
+                </p>
               </div>
               {/* Card 2 */}
-              <div className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+              <div
+                className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? "bg-[#0f172a] border border-slate-800/60" : "bg-white border border-slate-200 shadow-xl"}`}
+              >
                 <div className="mb-4">
                   <Zap className="w-8 h-8 text-blue-400" strokeWidth={1.5} />
                 </div>
-                <h3 className={`font-bold text-sm mb-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Network Latency</h3>
-                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Check real-time<br/>latency and<br/>performance.</p>
+                <h3
+                  className={`font-bold text-sm mb-2 ${darkMode ? "text-slate-200" : "text-slate-800"}`}
+                >
+                  Network Latency
+                </h3>
+                <p
+                  className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+                >
+                  Check real-time
+                  <br />
+                  latency and
+                  <br />
+                  performance.
+                </p>
               </div>
               {/* Card 3 */}
-              <div className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+              <div
+                className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? "bg-[#0f172a] border border-slate-800/60" : "bg-white border border-slate-200 shadow-xl"}`}
+              >
                 <div className="mb-4">
-                  <ShieldCheck className="w-8 h-8 text-indigo-400" strokeWidth={1.5} />
+                  <ShieldCheck
+                    className="w-8 h-8 text-indigo-400"
+                    strokeWidth={1.5}
+                  />
                 </div>
-                <h3 className={`font-bold text-sm mb-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Privacy Laws</h3>
-                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Understand which<br/>privacy laws apply<br/>to the server.</p>
+                <h3
+                  className={`font-bold text-sm mb-2 ${darkMode ? "text-slate-200" : "text-slate-800"}`}
+                >
+                  Privacy Laws
+                </h3>
+                <p
+                  className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+                >
+                  Understand which
+                  <br />
+                  privacy laws apply
+                  <br />
+                  to the server.
+                </p>
               </div>
               {/* Card 4 */}
-              <div className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+              <div
+                className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? "bg-[#0f172a] border border-slate-800/60" : "bg-white border border-slate-200 shadow-xl"}`}
+              >
                 <div className="mb-4">
                   <Leaf className="w-8 h-8 text-blue-500" strokeWidth={1.5} />
                 </div>
-                <h3 className={`font-bold text-sm mb-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Carbon Impact</h3>
-                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>See the estimated<br/>carbon footprint of<br/>the connection.</p>
+                <h3
+                  className={`font-bold text-sm mb-2 ${darkMode ? "text-slate-200" : "text-slate-800"}`}
+                >
+                  Carbon Impact
+                </h3>
+                <p
+                  className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+                >
+                  See the estimated
+                  <br />
+                  carbon footprint of
+                  <br />
+                  the connection.
+                </p>
               </div>
               {/* Card 5 */}
-              <div className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+              <div
+                className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? "bg-[#0f172a] border border-slate-800/60" : "bg-white border border-slate-200 shadow-xl"}`}
+              >
                 <div className="mb-4">
-                  <Route className="w-8 h-8 text-indigo-500" strokeWidth={1.5} />
+                  <Route
+                    className="w-8 h-8 text-indigo-500"
+                    strokeWidth={1.5}
+                  />
                 </div>
-                <h3 className={`font-bold text-sm mb-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Data Route</h3>
-                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Discover how far<br/>your data<br/>travels.</p>
+                <h3
+                  className={`font-bold text-sm mb-2 ${darkMode ? "text-slate-200" : "text-slate-800"}`}
+                >
+                  Data Route
+                </h3>
+                <p
+                  className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+                >
+                  Discover how far
+                  <br />
+                  your data
+                  <br />
+                  travels.
+                </p>
               </div>
               {/* Card 6 */}
-              <div className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
+              <div
+                className={`p-6 rounded-2xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 ${darkMode ? "bg-[#0f172a] border border-slate-800/60" : "bg-white border border-slate-200 shadow-xl"}`}
+              >
                 <div className="mb-4">
-                  <Globe className="w-8 h-8 text-purple-400" strokeWidth={1.5} />
+                  <Globe
+                    className="w-8 h-8 text-purple-400"
+                    strokeWidth={1.5}
+                  />
                 </div>
-                <h3 className={`font-bold text-sm mb-2 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Domain WHOIS</h3>
-                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Lookup DNS and<br/>Registrar<br/>intelligence.</p>
+                <h3
+                  className={`font-bold text-sm mb-2 ${darkMode ? "text-slate-200" : "text-slate-800"}`}
+                >
+                  Domain WHOIS
+                </h3>
+                <p
+                  className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+                >
+                  Lookup DNS and
+                  <br />
+                  Registrar
+                  <br />
+                  intelligence.
+                </p>
               </div>
             </div>
 
             {/* Privacy First Card */}
-            <div className={`w-full p-8 rounded-2xl flex flex-col md:flex-row items-center md:items-start gap-6 mb-6 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center shrink-0 ${darkMode ? 'bg-[#1a2035]' : 'bg-blue-50'}`}>
+            <div
+              className={`w-full p-8 rounded-2xl flex flex-col md:flex-row items-center md:items-start gap-6 mb-6 ${darkMode ? "bg-[#0f172a] border border-slate-800/60" : "bg-white border border-slate-200 shadow-xl"}`}
+            >
+              <div
+                className={`w-16 h-16 rounded-full flex items-center justify-center shrink-0 ${darkMode ? "bg-[#1a2035]" : "bg-blue-50"}`}
+              >
                 <Lock className="w-8 h-8 text-blue-500" strokeWidth={1.5} />
               </div>
               <div className="text-center md:text-left mt-2 md:mt-0">
-                <h3 className="font-bold text-lg mb-1.5 text-blue-400">Privacy First</h3>
-                <p className={`text-sm leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                  NetPin does not collect, store or share any personal data.<br className="hidden md:block" />
+                <h3 className="font-bold text-lg mb-1.5 text-blue-400">
+                  Privacy First
+                </h3>
+                <p
+                  className={`text-sm leading-relaxed ${darkMode ? "text-slate-300" : "text-slate-600"}`}
+                >
+                  NetPin does not collect, store or share any personal data.
+                  <br className="hidden md:block" />
                   All analysis happens locally on your device.
                 </p>
               </div>
             </div>
 
             {/* Bottom Grid: Open Source & Developer */}
-            <div className={`w-full rounded-2xl grid grid-cols-1 md:grid-cols-2 ${darkMode ? 'bg-[#0f172a] border border-slate-800/60' : 'bg-white border border-slate-200 shadow-xl'}`}>
-              
+            <div
+              className={`w-full rounded-2xl grid grid-cols-1 md:grid-cols-2 ${darkMode ? "bg-[#0f172a] border border-slate-800/60" : "bg-white border border-slate-200 shadow-xl"}`}
+            >
               {/* Left Column: Open Source */}
-              <div className={`p-8 md:border-r ${darkMode ? 'border-slate-800/60' : 'border-slate-200'}`}>
+              <div
+                className={`p-8 md:border-r ${darkMode ? "border-slate-800/60" : "border-slate-200"}`}
+              >
                 <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-5">
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${darkMode ? 'bg-[#1a2035]' : 'bg-blue-50'}`}>
-                    <Code className="w-7 h-7 text-indigo-500" strokeWidth={1.5} />
+                  <div
+                    className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${darkMode ? "bg-[#1a2035]" : "bg-blue-50"}`}
+                  >
+                    <Code
+                      className="w-7 h-7 text-indigo-500"
+                      strokeWidth={1.5}
+                    />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-lg mb-1.5 text-blue-400">Open Source</h3>
-                    <p className={`text-sm mb-6 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                      NetPin is 100% open source and free to use.<br className="hidden md:block" />
+                    <h3 className="font-bold text-lg mb-1.5 text-blue-400">
+                      Open Source
+                    </h3>
+                    <p
+                      className={`text-sm mb-6 ${darkMode ? "text-slate-300" : "text-slate-600"}`}
+                    >
+                      NetPin is 100% open source and free to use.
+                      <br className="hidden md:block" />
                       Contributions are welcome!
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
-                      <a href="https://github.com/01iamysf/NetPin" target="_blank" rel="noreferrer" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all w-full sm:w-auto">
-                        <Github className="w-4 h-4" /> View on GitHub <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                      <a
+                        href="https://github.com/01iamysf/NetPin"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all w-full sm:w-auto"
+                      >
+                        <Github className="w-4 h-4" /> View on GitHub{" "}
+                        <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                       </a>
-                      <a href="https://github.com/01iamysf/NetPin/issues" target="_blank" rel="noreferrer" className={`px-5 py-2.5 rounded-xl border font-bold text-sm flex items-center justify-center gap-2 transition-all w-full sm:w-auto ${darkMode ? 'border-slate-700 hover:bg-slate-800 text-slate-300' : 'border-slate-200 hover:bg-slate-50 text-slate-700'}`}>
-                        <ExternalLink className="w-4 h-4 opacity-70" /> Report an Issue
+                      <a
+                        href="https://github.com/01iamysf/NetPin/issues"
+                        target="_blank"
+                        rel="noreferrer"
+                        className={`px-5 py-2.5 rounded-xl border font-bold text-sm flex items-center justify-center gap-2 transition-all w-full sm:w-auto ${darkMode ? "border-slate-700 hover:bg-slate-800 text-slate-300" : "border-slate-200 hover:bg-slate-50 text-slate-700"}`}
+                      >
+                        <ExternalLink className="w-4 h-4 opacity-70" /> Report
+                        an Issue
                       </a>
                     </div>
                   </div>
@@ -1305,32 +1913,61 @@ export default function Dashboard() {
               {/* Right Column: Developer */}
               <div className="p-8">
                 <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-5">
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${darkMode ? 'bg-[#1a2035]' : 'bg-blue-50'}`}>
+                  <div
+                    className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${darkMode ? "bg-[#1a2035]" : "bg-blue-50"}`}
+                  >
                     <User className="w-7 h-7 text-blue-500" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg mb-1.5 text-blue-400">Developer</h3>
-                    <h4 className={`font-bold text-base mb-1 ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Md Yusuf</h4>
-                    <p className={`text-xs mb-3 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Software Engineer</p>
-                    <p className={`text-sm mb-5 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                      Passionate about clean code, system<br className="hidden md:block" />
+                    <h3 className="font-bold text-lg mb-1.5 text-blue-400">
+                      Developer
+                    </h3>
+                    <h4
+                      className={`font-bold text-base mb-1 ${darkMode ? "text-slate-200" : "text-slate-800"}`}
+                    >
+                      Md Yusuf
+                    </h4>
+                    <p
+                      className={`text-xs mb-3 ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+                    >
+                      Software Engineer
+                    </p>
+                    <p
+                      className={`text-sm mb-5 ${darkMode ? "text-slate-300" : "text-slate-600"}`}
+                    >
+                      Passionate about clean code, system
+                      <br className="hidden md:block" />
                       design, and AI/ML integrations.
                     </p>
                     <div className="flex items-center justify-center md:justify-start gap-5">
-                      <a href="https://github.com/01iamysf" target="_blank" rel="noreferrer" className={`transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-blue-600'}`}>
+                      <a
+                        href="https://github.com/01iamysf"
+                        target="_blank"
+                        rel="noreferrer"
+                        className={`transition-colors ${darkMode ? "text-slate-400 hover:text-white" : "text-slate-500 hover:text-blue-600"}`}
+                      >
                         <Github className="w-5 h-5" />
                       </a>
-                      <a href="https://iamyusuf.site" target="_blank" rel="noreferrer" className={`transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-blue-600'}`}>
+                      <a
+                        href="https://iamyusuf.site"
+                        target="_blank"
+                        rel="noreferrer"
+                        className={`transition-colors ${darkMode ? "text-slate-400 hover:text-white" : "text-slate-500 hover:text-blue-600"}`}
+                      >
                         <Globe className="w-5 h-5" />
                       </a>
-                      <a href="https://linkedin.com/in/01iamysf" target="_blank" rel="noreferrer" className={`transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-blue-600'}`}>
+                      <a
+                        href="https://linkedin.com/in/01iamysf"
+                        target="_blank"
+                        rel="noreferrer"
+                        className={`transition-colors ${darkMode ? "text-slate-400 hover:text-white" : "text-slate-500 hover:text-blue-600"}`}
+                      >
                         <Linkedin className="w-5 h-5" />
                       </a>
                     </div>
                   </div>
                 </div>
               </div>
-              
             </div>
           </div>
         )}
@@ -1340,134 +1977,165 @@ export default function Dashboard() {
       </main>
 
       {/* Cookie Info Modal Popover */}
-      {infoCookie && (() => {
-        const info = getCookieInfo(infoCookie.name);
-        // Map dynamic colors statically for Tailwind
-        const colorMap = {
-          'blue': darkMode ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-blue-100 text-blue-600 border-blue-200',
-          'emerald': darkMode ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-100 text-emerald-600 border-emerald-200',
-          'indigo': darkMode ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'bg-indigo-100 text-indigo-600 border-indigo-200',
-          'red': darkMode ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-red-100 text-red-600 border-red-200',
-          'slate': darkMode ? 'bg-slate-500/10 text-slate-400 border-slate-500/20' : 'bg-slate-100 text-slate-600 border-slate-200',
-        };
-        const badgeClass = colorMap[info.color] || colorMap.slate;
+      {infoCookie &&
+        (() => {
+          const info = getCookieInfo(infoCookie.name);
+          // Map dynamic colors statically for Tailwind
+          const colorMap = {
+            blue: darkMode
+              ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+              : "bg-blue-100 text-blue-600 border-blue-200",
+            emerald: darkMode
+              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+              : "bg-emerald-100 text-emerald-600 border-emerald-200",
+            indigo: darkMode
+              ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+              : "bg-indigo-100 text-indigo-600 border-indigo-200",
+            red: darkMode
+              ? "bg-red-500/10 text-red-400 border-red-500/20"
+              : "bg-red-100 text-red-600 border-red-200",
+            slate: darkMode
+              ? "bg-slate-500/10 text-slate-400 border-slate-500/20"
+              : "bg-slate-100 text-slate-600 border-slate-200",
+          };
+          const badgeClass = colorMap[info.color] || colorMap.slate;
 
-        return (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={() => setInfoCookie(null)}>
-            <div className={`w-full max-w-sm rounded-2xl shadow-2xl p-6 relative ${darkMode ? 'bg-[#0f172a] border border-slate-800 text-slate-200' : 'bg-white text-slate-800'}`} onClick={e => e.stopPropagation()}>
-              <button 
-                onClick={() => setInfoCookie(null)}
-                className={`absolute top-4 right-4 p-1.5 rounded-lg ${darkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
+          return (
+            <div
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+              onClick={() => setInfoCookie(null)}
+            >
+              <div
+                className={`w-full max-w-sm rounded-2xl shadow-2xl p-6 relative ${darkMode ? "bg-[#0f172a] border border-slate-800 text-slate-200" : "bg-white text-slate-800"}`}
+                onClick={(e) => e.stopPropagation()}
               >
-                <X className="w-5 h-5" />
-              </button>
-              
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${badgeClass} border-none`}>
-                  <Info className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg break-all leading-tight pr-6">{infoCookie.name}</h3>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border mt-1 inline-block ${badgeClass}`}>
-                    {info.category}
-                  </span>
-                </div>
-              </div>
-
-              <div className={`p-4 rounded-xl mb-4 text-sm ${darkMode ? 'bg-[#0a0e1a] border border-slate-800 text-slate-300' : 'bg-slate-50 border border-slate-200 text-slate-700'}`}>
-                {info.description}
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Domain</span>
-                  <span className="font-semibold">{infoCookie.domain}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Importance</span>
-                  <span className={`font-semibold ${info.importance === 'High' ? 'text-red-400' : info.importance === 'Medium' ? 'text-amber-400' : 'text-emerald-400'}`}>
-                    {info.importance}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Expiration</span>
-                  <span className="font-semibold truncate max-w-[150px]">
-                    {infoCookie.session ? 'End of Session' : new Date(infoCookie.expirationDate * 1000).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="mt-6 flex gap-3">
-                <button 
+                <button
                   onClick={() => setInfoCookie(null)}
-                  className={`flex-1 py-2.5 rounded-lg font-bold text-sm ${darkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
+                  className={`absolute top-4 right-4 p-1.5 rounded-lg ${darkMode ? "hover:bg-slate-800 text-slate-400" : "hover:bg-slate-100 text-slate-500"}`}
                 >
-                  Close
+                  <X className="w-5 h-5" />
                 </button>
-                <button 
-                  onClick={() => {
-                    removeCookies([infoCookie]);
-                    setInfoCookie(null);
-                  }}
-                  className="flex-1 py-2.5 rounded-lg font-bold text-sm bg-red-500 hover:bg-red-600 text-white flex items-center justify-center gap-1.5"
+
+                <div className="flex items-center gap-3 mb-4">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center ${badgeClass} border-none`}
+                  >
+                    <Info className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg break-all leading-tight pr-6">
+                      {infoCookie.name}
+                    </h3>
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border mt-1 inline-block ${badgeClass}`}
+                    >
+                      {info.category}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  className={`p-4 rounded-xl mb-4 text-sm ${darkMode ? "bg-[#0a0e1a] border border-slate-800 text-slate-300" : "bg-slate-50 border border-slate-200 text-slate-700"}`}
                 >
-                  <Trash2 className="w-4 h-4" /> Delete
-                </button>
+                  {info.description}
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Domain</span>
+                    <span className="font-semibold">{infoCookie.domain}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Importance</span>
+                    <span
+                      className={`font-semibold ${info.importance === "High" ? "text-red-400" : info.importance === "Medium" ? "text-amber-400" : "text-emerald-400"}`}
+                    >
+                      {info.importance}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Expiration</span>
+                    <span className="font-semibold truncate max-w-[150px]">
+                      {infoCookie.session
+                        ? "End of Session"
+                        : new Date(
+                            infoCookie.expirationDate * 1000,
+                          ).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() => setInfoCookie(null)}
+                    className={`flex-1 py-2.5 rounded-lg font-bold text-sm ${darkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      removeCookies([infoCookie]);
+                      setInfoCookie(null);
+                    }}
+                    className="flex-1 py-2.5 rounded-lg font-bold text-sm bg-red-500 hover:bg-red-600 text-white flex items-center justify-center gap-1.5"
+                  >
+                    <Trash2 className="w-4 h-4" /> Delete
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {/* Footer Navigation Bar */}
-      <footer className={`fixed bottom-0 left-0 right-0 border-t z-50 ${darkMode ? 'bg-[#0a0e1a] border-slate-900' : 'bg-white border-slate-200'}`}>
+      <footer
+        className={`fixed bottom-0 left-0 right-0 border-t z-50 ${darkMode ? "bg-[#0a0e1a] border-slate-900" : "bg-white border-slate-200"}`}
+      >
         <div className="max-w-md mx-auto px-6 py-2 flex items-center justify-between">
-          
           {/* Tab 1: Overview */}
-          <button 
-            onClick={() => setActiveTab('overview')}
-            className={`flex flex-col items-center gap-1 p-1.5 ${activeTab === 'overview' ? 'text-blue-500 font-bold' : 'text-slate-500 hover:text-slate-300'}`}
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={`flex flex-col items-center gap-1 p-1.5 ${activeTab === "overview" ? "text-blue-500 font-bold" : "text-slate-500 hover:text-slate-300"}`}
           >
             <Globe className="w-5 h-5" />
             <span className="text-[10px] tracking-wide">Overview</span>
           </button>
 
           {/* Tab 2: History */}
-          <button 
-            onClick={() => setActiveTab('history')}
-            className={`flex flex-col items-center gap-1 p-1.5 ${activeTab === 'history' ? 'text-blue-500 font-bold' : 'text-slate-500 hover:text-slate-300'}`}
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`flex flex-col items-center gap-1 p-1.5 ${activeTab === "history" ? "text-blue-500 font-bold" : "text-slate-500 hover:text-slate-300"}`}
           >
             <History className="w-5 h-5" />
             <span className="text-[10px] tracking-wide">History</span>
           </button>
 
           {/* Tab 3: Lists */}
-          <button 
-            onClick={() => setActiveTab('lists')}
-            className={`flex flex-col items-center gap-1 p-1.5 ${activeTab === 'lists' ? 'text-blue-500 font-bold' : 'text-slate-500 hover:text-slate-300'}`}
+          <button
+            onClick={() => setActiveTab("lists")}
+            className={`flex flex-col items-center gap-1 p-1.5 ${activeTab === "lists" ? "text-blue-500 font-bold" : "text-slate-500 hover:text-slate-300"}`}
           >
             <ListFilter className="w-5 h-5" />
             <span className="text-[10px] tracking-wide">Lists</span>
           </button>
 
           {/* Tab 4: Settings */}
-          <button 
-            onClick={() => setActiveTab('settings')}
-            className={`flex flex-col items-center gap-1 p-1.5 ${activeTab === 'settings' ? 'text-blue-500 font-bold' : 'text-slate-500 hover:text-slate-300'}`}
+          <button
+            onClick={() => setActiveTab("settings")}
+            className={`flex flex-col items-center gap-1 p-1.5 ${activeTab === "settings" ? "text-blue-500 font-bold" : "text-slate-500 hover:text-slate-300"}`}
           >
             <Settings className="w-5 h-5" />
             <span className="text-[10px] tracking-wide">Settings</span>
           </button>
 
           {/* Tab 5: About */}
-          <button 
-            onClick={() => setActiveTab('about')}
-            className={`flex flex-col items-center gap-1 p-1.5 ${activeTab === 'about' ? 'text-blue-500 font-bold' : 'text-slate-500 hover:text-slate-300'}`}
+          <button
+            onClick={() => setActiveTab("about")}
+            className={`flex flex-col items-center gap-1 p-1.5 ${activeTab === "about" ? "text-blue-500 font-bold" : "text-slate-500 hover:text-slate-300"}`}
           >
             <Info className="w-5 h-5" />
             <span className="text-[10px] tracking-wide">About</span>
           </button>
-
         </div>
       </footer>
     </div>

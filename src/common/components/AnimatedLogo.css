@@ -1,0 +1,104 @@
+.logo-animated {
+  --logo-size:       36px;
+  --logo-icon-size:  22px;
+  --logo-ring-width: 1px;
+  --logo-bg: #dbeafe; 
+  --logo-border: #bfdbfe; 
+  --logo-shadow: 0 4px 6px -1px rgba(191, 219, 254, 0.5);
+
+  position: relative;
+  width:  var(--logo-size);
+  height: var(--logo-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-animated--dark {
+  --logo-bg: rgba(49, 46, 129, 0.4); 
+  --logo-border: rgba(99, 102, 241, 0.3);
+  --logo-shadow: 0 4px 6px -1px rgba(30, 58, 138, 0.2);
+}
+
+.logo-animated--sm {
+  --logo-size:       32px;
+  --logo-icon-size:  20px;
+  --logo-ring-width: 1px;
+}
+
+.logo-animated--lg {
+  --logo-size:       44px;
+  --logo-icon-size:  26px;
+  --logo-ring-width: 1.5px;
+}
+
+.logo-animated--xl {
+  --logo-size:       80px;
+  --logo-icon-size:  48px;
+  --logo-ring-width: 2px;
+}
+
+.logo-animated__ring {
+  position: absolute;
+  border-radius: 50%;
+  border: var(--logo-ring-width) solid transparent;
+  will-change: transform;
+  transform: rotate(0deg); 
+  pointer-events: none;
+}
+
+.logo-animated__ring--1 {
+  width: 100%; height: 100%;
+  border-top-color:   rgba(59,  130, 246, 0.65);
+  border-right-color: rgba(59,  130, 246, 0.15);
+  animation: logo-spin 3s linear infinite;
+}
+
+.logo-animated__ring--2 {
+  width: 130%; height: 130%;
+  border-bottom-color: rgba(99,  102, 241, 0.55);
+  border-left-color:   rgba(99,  102, 241, 0.1);
+  animation: logo-spin 5s linear infinite reverse;
+}
+
+.logo-animated__ring--3 {
+  width: 160%; height: 160%;
+  border-top-color:   rgba(168, 85,  247, 0.3);
+  border-right-color: rgba(168, 85,  247, 0.08);
+  animation: logo-spin 7s linear infinite;
+}
+
+@keyframes logo-spin {
+  to { transform: rotate(360deg); }
+}
+
+.logo-animated__icon {
+  width:  var(--logo-icon-size);
+  height: var(--logo-icon-size);
+  border-radius: 0.75rem;
+  background: var(--logo-bg);
+  border: 1px solid var(--logo-border);
+  box-shadow: var(--logo-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  transition: box-shadow 350ms cubic-bezier(0.4, 0, 0.2, 1), background 250ms, border 250ms;
+}
+
+.logo-animated__icon img {
+  width:  75%;
+  height: 75%;
+  display: block;
+  object-fit: contain;
+}
+
+.logo-animated:hover .logo-animated__ring--1 { animation-duration: 1.2s; }
+.logo-animated:hover .logo-animated__ring--2 { animation-duration: 2s;   }
+.logo-animated:hover .logo-animated__ring--3 { animation-duration: 3s;   }
+.logo-animated:hover .logo-animated__icon {
+  box-shadow:
+    0 0 0 1px rgba(59, 130, 246, 0.2),
+    0 0 14px rgba(59, 130, 246, 0.4);
+}
