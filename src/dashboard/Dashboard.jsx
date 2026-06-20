@@ -223,7 +223,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-center mb-6">
           <AnimatedLogo size="xl" darkMode={darkMode} className="animate-pulse" />
         </div>
-        <h2 className="font-bold text-2xl tracking-wider">NetPin</h2>
+        <h2 className="font-bold text-2xl tracking-wider bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">NetPin</h2>
         <p className="text-slate-400 mt-2 animate-pulse">
           Gathering routing routes & green certifications...
         </p>

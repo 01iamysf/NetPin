@@ -76,7 +76,7 @@ export default function Popup() {
         <div className="relative flex items-center justify-center">
           <AnimatedLogo size="lg" darkMode={darkMode} className="animate-pulse" />
         </div>
-        <h3 className="mt-6 font-semibold text-lg tracking-wider text-blue-400">
+        <h3 className="mt-6 font-semibold text-lg tracking-wider bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
           NetPin
         </h3>
         <p className="text-sm text-slate-400 mt-2 animate-pulse">
